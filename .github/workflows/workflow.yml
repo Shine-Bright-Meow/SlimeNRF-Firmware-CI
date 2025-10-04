@@ -88,7 +88,9 @@ jobs:
                   {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_SPI_StackedSmol", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
                   {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_NoSleep_SPI_StackedSmol", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
                   {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
                 ]
     if: always()
     runs-on: ubuntu-latest
