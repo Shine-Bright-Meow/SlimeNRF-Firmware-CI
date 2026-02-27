@@ -229,7 +229,9 @@ jobs:
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
+          ls
           cd zephyr-workspace
+          ls
           sudo rm -rf .west
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
