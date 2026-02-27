@@ -231,9 +231,9 @@ jobs:
         run: |
           echo "Root Directory"
           ls
-          sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk }}|' west.yml
           echo "Patched manifest:"
-          grep -A4 "name: sdk-nrf" west.yml
+          grep -A4 "sdk-nrf" west.yml
           cd zephyr-workspace
           echo "zephyr-workspace Directory"
           ls
@@ -242,9 +242,9 @@ jobs:
           ls
           cd ..
           rm -rf .west
-          sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' SlimeNRF-CI/west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk }}|' SlimeNRF-CI/west.yml
           echo "SDK revision after patch:"
-          grep -A4 "name: sdk-nrf" SlimeNRF-CI/west.yml
+          grep -A4 "sdk-nrf" SlimeNRF-CI/west.yml
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
