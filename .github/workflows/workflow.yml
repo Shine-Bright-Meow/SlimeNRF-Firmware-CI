@@ -346,7 +346,7 @@ jobs:
 
       - name: 🔨 Build SlimeVR-Tracker-nRF-Receiver - ${{ matrix.boards.boardname }}
       # Receiver Firmware Build 
-        if: ${{ matrix.boards.type == 'receiver' }}
+        if: ${{ matrix.boards.type == 'receiver' && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF-Receiver/build
@@ -361,6 +361,24 @@ jobs:
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF-Receiver
 
           mv SlimeVR-Tracker-nRF-Receiver/build/SlimeVR-Tracker-nRF-Receiver/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+
+      - name: 🔨 Build SlimeVR-Tracker-nRF-Receiver-TDMA - ${{ matrix.boards.boardname }}
+      # Receiver Firmware Build (TDMA)
+        if: ${{ matrix.boards.type == 'receiver' && (contains(matrix.boards.filename, 'TDMA')) }}
+        run: |
+          cd zephyr-workspace
+          sudo rm -rf SlimeVR-Tracker-nRF-Receiver-TDMA/build
+          mkdir SlimeVR-Tracker-nRF-Receiver-TDMA/build
+
+          west build \
+              --board ${{ matrix.boards.boardname }} \
+              --pristine=always SlimeVR-Tracker-nRF-Receiver-TDMA \
+              --build-dir SlimeVR-Tracker-nRF-Receiver-TDMA/build \
+              -- \
+              -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DBOARD_ROOT=../SlimeVR-Tracker-nRF-Receiver-TDMA
+
+          mv SlimeVR-Tracker-nRF-Receiver-TDMA/build/SlimeVR-Tracker-nRF-Receiver-TDMA/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
       - name: 🔧 Disabling External Clock
         if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.clk == 'disabled') }}
@@ -461,7 +479,7 @@ jobs:
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
       # Tracker Firmware Build 
-        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) }}
+        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF/build
@@ -477,9 +495,27 @@ jobs:
 
           mv SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
+      - name: 🔨 Build SlimeVR-Tracker-nRF-TDMA - ${{ matrix.boards.boardname }}
+      # Tracker Firmware Build (TDMA)
+        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) && (contains(matrix.boards.filename, 'TDMA')) }}
+        run: |
+          cd zephyr-workspace
+          sudo rm -rf SlimeVR-Tracker-nRF-TDMA/build
+          mkdir SlimeVR-Tracker-nRF-TDMA/build
+
+          west build \
+              --board ${{ matrix.boards.boardname }} \
+              --pristine=always SlimeVR-Tracker-nRF-TDMA \
+              --build-dir SlimeVR-Tracker-nRF-TDMA/build \
+              -- \
+              -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DBOARD_ROOT=../SlimeVR-Tracker-nRF-TDMA
+
+          mv SlimeVR-Tracker-nRF-TDMA/build/SlimeVR-Tracker-nRF-TDMA/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+
       - name: 🔨 Build Stacked-SmolSlime - ${{ matrix.boards.boardname }}
       # Tracker Firmware Build 
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> Stacked-SmolSlime/prj.conf
