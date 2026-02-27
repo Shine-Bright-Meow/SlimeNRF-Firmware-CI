@@ -6,7 +6,7 @@ manifest:
     - name: sdk-nrf
       path: nrf
       url: https://github.com/nrfconnect/sdk-nrf.git
-      revision: ${SDK_REVISION}
+      revision: v3.2.0
       import: true
 
     # SlimeVR-Tracker-nRF-Receiver

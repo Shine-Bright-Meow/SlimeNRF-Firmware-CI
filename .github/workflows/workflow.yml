@@ -231,7 +231,7 @@ jobs:
         run: |
           cd zephyr-workspace
           rm -rf .west
-          export SDK_REVISION=${{ matrix.boards.sdk }}
+          sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' SlimeNRF-CI/west.yml
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
