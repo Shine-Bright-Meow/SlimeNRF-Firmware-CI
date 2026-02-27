@@ -324,11 +324,10 @@ jobs:
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
-          echo "Root Directory"
-          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ {s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|}' west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' west.yml
           cd zephyr-workspace
           rm -rf .west
-          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ {s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|}' SlimeNRF-CI/west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' SlimeNRF-CI/west.yml
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
