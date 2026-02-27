@@ -232,7 +232,7 @@ jobs:
           cd zephyr-workspace
           sudo rm -rf .west
           west init -l SlimeNRF-CI
-          west update nrf --revision ${{ matrix.boards.sdk }}
+          west update -r nrf@${{ matrix.boards.sdk }}
           west update --narrow -o=--depth=1
           west zephyr-export
 
