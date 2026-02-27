@@ -144,7 +144,7 @@ jobs:
       - name: 🏷️ Generate tag
         if: always()
         run: |
-          echo "TAG_NAME=daily - $(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: 🏷️ Create or Update Tag
         if: always()
