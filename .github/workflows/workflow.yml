@@ -550,17 +550,18 @@ jobs:
           sudo cp -r SlimeVR-Tracker-nRF/NXP-ISSDK-SensorFusion Stacked-SmolSlime/
           sudo rm -rf Stacked-SmolSlime/build
           mkdir Stacked-SmolSlime/build
-          sudo cp SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_i2c.yml SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
-          sudo cp SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_spi.yml SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
-          sudo cp SlimeVR-Tracker-nRF/socs/nrf52840_i2c.overlay SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
-          sudo cp SlimeVR-Tracker-nRF/socs/nrf52840_spi.overlay SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
-          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_i2c.yaml SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
-          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_i2c_defconfig SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
-          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_spi.yaml SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
-          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_spi_defconfig SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
-          sed -i "/- name: 'chrysalis'/a\      - name: 'stackedi2c'\n      - name: 'stackedspi'" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
-          curl -fSL https://cdn.shinebright.dev/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
-          curl -fSL https://cdn.shinebright.dev/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
+          sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedi2c.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedspi.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedi2c.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedspi.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
 
           west build \
               --board ${{ matrix.boards.boardname }} \
