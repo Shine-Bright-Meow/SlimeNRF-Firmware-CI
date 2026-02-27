@@ -229,6 +229,7 @@ jobs:
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
+          sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' west.yml
           cd zephyr-workspace
           rm -rf .west
           sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' SlimeNRF-CI/west.yml
