@@ -135,6 +135,25 @@ jobs:
           git log -1 --pretty=%B >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      - name: ✔️ Checkout repository
+        if: always()
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Generate tag
+        if: always()
+        run: |
+          echo "TAG_NAME=daily - $(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: 🏷️ Create or Update Tag
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -f "${TAG_NAME}"
+          git push -f origin "${TAG_NAME}"
+
       - name: 🧹 Clean Landing Site
         run: |
           sudo rm -rf zephyr-workspace/SlimeNRF-CI
@@ -402,7 +421,7 @@ jobs:
           # A file, directory or wildcard pattern that describes what to upload
           path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
-      - name: 📁 Create/Update Github Release
+      - name: 📁 Create/Update Github Latest Release
         if: always()
         uses: mini-bomba/create-github-release@v1.2.0
         with:
@@ -412,6 +431,20 @@ jobs:
           name: "Latest Firmware"
           body: |
             Successful build of the latest SlimeNRF Firmware. (Automated)
+          files: |
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+          clear_attachments: false
+
+      - name: 📁 Create/Update Github Daily Release
+        if: always()
+        uses: mini-bomba/create-github-release@v1.2.0
+        with:
+          token: ${{ secrets.gh_token }}
+          tag: "${{ env.TAG_NAME }}"
+          prerelease: false
+          name: "Daily Build - ${{ env.TAG_NAME }}"
+          body: |
+            Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
             zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
           clear_attachments: false
