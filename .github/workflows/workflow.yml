@@ -229,14 +229,9 @@ jobs:
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
-          ls
           cd zephyr-workspace
-          ls
-          sudo rm -rf .west
-          west init -l SlimeNRF-CI
+          west init -l SlimeNRF-CI --manifest-rev ${{ matrix.boards.sdk }}
           west update --narrow -o=--depth=1
-          west list
-          west update -r sdk-nrf@${{ matrix.boards.sdk }}
           west zephyr-export
 
       - name: 🐍 Install Python Dependencies
