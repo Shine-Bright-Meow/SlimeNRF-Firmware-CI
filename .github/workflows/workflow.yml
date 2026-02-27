@@ -325,9 +325,9 @@ jobs:
       - name: ♻️ Initialize Zephyr Workspace
         run: |
           sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
           cd zephyr-workspace
           rm -rf .west
-          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' SlimeNRF-CI/west.yml
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
@@ -389,8 +389,12 @@ jobs:
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s|$find|$replace|g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling External Clock
@@ -401,8 +405,11 @@ jobs:
           replace="clk-gpios"
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
           sed -i "s/$find/$replace/g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Extra Action
@@ -410,6 +417,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling Extra Action
@@ -417,6 +425,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Magnetometer
@@ -424,6 +433,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling Magnetometer
@@ -431,6 +441,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Sleep
@@ -441,6 +452,10 @@ jobs:
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_LOW_POWER_2=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_IMU_WAKE_UP=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_LOW_POWER_2=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=n" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> Stacked-SmolSlime/prj.conf
@@ -452,6 +467,8 @@ jobs:
           cd zephyr-workspace
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> Stacked-SmolSlime/prj.conf
 
@@ -464,6 +481,9 @@ jobs:
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s|$find|$replace|g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
 
       - name: 🔧 Enabling SW0 Button
@@ -475,6 +495,9 @@ jobs:
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s/$find/$replace/g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
@@ -500,6 +523,9 @@ jobs:
         if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) && (contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
+          sudo cp -r SlimeVR-Tracker-nRF/vqf-c SlimeVR-Tracker-nRF-TDMA/
+          sudo cp -r SlimeVR-Tracker-nRF/Fusion SlimeVR-Tracker-nRF-TDMA/
+          sudo cp -r SlimeVR-Tracker-nRF/NXP-ISSDK-SensorFusion SlimeVR-Tracker-nRF-TDMA/
           sudo rm -rf SlimeVR-Tracker-nRF-TDMA/build
           mkdir SlimeVR-Tracker-nRF-TDMA/build
 
