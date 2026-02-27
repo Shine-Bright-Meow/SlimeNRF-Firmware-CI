@@ -210,6 +210,7 @@ jobs:
           rm -rf ~/zephyr-sdk
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
+          
       - name: ♻️ Initialize Zephyr Workspace
         # Set up the Zephyr workspace and install the Python dependencies
         run: |
