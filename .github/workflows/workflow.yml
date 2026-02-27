@@ -411,7 +411,7 @@ jobs:
           prerelease: false
           name: "Latest Firmware"
           body: |
-            Successful build of the latest SlimeNRF Firmware. (Automated)
+            Latest successful SlimeNRF Firmware build. (Automated)
           files: |
             zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
           clear_attachments: false
@@ -422,8 +422,8 @@ jobs:
         with:
           token: ${{ secrets.gh_token }}
           tag: "${{ env.TAG_NAME }}"
-          prerelease: false
-          name: "Daily Build - ${{ env.TAG_NAME }}"
+          prerelease: true
+          name: "${{ env.TAG_NAME }}"
           body: |
             Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
