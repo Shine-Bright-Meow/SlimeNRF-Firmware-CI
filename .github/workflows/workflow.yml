@@ -234,7 +234,7 @@ jobs:
           sudo rm -rf .west
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
-          west update -r nrf@${{ matrix.boards.sdk }}
+          west update -r sdk-nrf@${{ matrix.boards.sdk }}
           west zephyr-export
 
       - name: 🐍 Install Python Dependencies
