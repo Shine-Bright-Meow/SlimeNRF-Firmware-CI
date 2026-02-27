@@ -550,6 +550,17 @@ jobs:
           sudo cp -r SlimeVR-Tracker-nRF/NXP-ISSDK-SensorFusion Stacked-SmolSlime/
           sudo rm -rf Stacked-SmolSlime/build
           mkdir Stacked-SmolSlime/build
+          sudo cp SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_i2c.yml SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
+          sudo cp SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_spi.yml SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
+          sudo cp SlimeVR-Tracker-nRF/socs/nrf52840_i2c.overlay SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
+          sudo cp SlimeVR-Tracker-nRF/socs/nrf52840_spi.overlay SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
+          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_i2c.yaml SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
+          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_i2c_defconfig SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
+          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_spi.yaml SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
+          sudo cp SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_spi_defconfig SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
+          sed -i "/- name: 'chrysalis'/a\      - name: 'stackedi2c'\n      - name: 'stackedspi'" zephyr-workspace/SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
+          curl -fSL https://cdn.shinebright.dev/promicro_uf2_stackedi2c.dts -o zephyr-workspace/SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
+          curl -fSL https://cdn.shinebright.dev/promicro_uf2_stackedspi.dts -o zephyr-workspace/SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
 
           west build \
               --board ${{ matrix.boards.boardname }} \
