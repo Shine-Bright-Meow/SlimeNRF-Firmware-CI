@@ -24,101 +24,212 @@ jobs:
       fail-fast: false
       matrix:
         boards: [
-                  {boardname: "nrf52840dongle/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "holyiot_21017/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Holyiot_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "promicro_uf2/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_ProMicro_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_XIAO_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "etee_dongle_uf2/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_etee_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "nrf52840dk/nrf52840", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_nRF52840dk_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "butterfly_p1_uf2/nrf52833", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P1_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "butterfly_p2_uf2/nrf52833", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P2_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
-                  {boardname: "butterfly_p3_uf2/nrf52833", clk: "N/A", type: "receiver", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P3_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
-                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_smSPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_smSPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_smSPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Chrysalis_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_smSPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_smSPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_smSPI_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Chrysalis_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_Mag_ProMicro", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_XIAO", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_XIAO", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_XIAO", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_XIAO", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_XIAO", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_XIAO", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_XIAO", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_Mag_XIAO", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"},
-                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_XIAO_Sense", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_XIAO_Sense", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO_Sense", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_XIAO_Sense", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_R3", mergehex: "", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_R3", mergehex: "", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini2", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini2", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini3_R6", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R6", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini3_R7", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R7", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4R9", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R9", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4R11", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R11", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mochi", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mochi", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_Mochi", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_NoSleep_Mochi", mergehex: "", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "nrf52840dongle/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "holyiot_21017/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Holyiot_Dongle_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_ProMicro_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_XIAO_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "etee_dongle_uf2/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_etee_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "nrf52840dk/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_nRF52840dk_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p1_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P1_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p2_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P2_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
+                  {boardname: "butterfly_p3_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P3_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
+                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_smSPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_smSPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_smSPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Chrysalis_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Chrysalis_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_CLK_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleepCLK_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_CLK_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_XIAO_Sense", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_XIAO_Sense", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO_Sense", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_XIAO_Sense", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_R3", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_R3", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini2", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini2", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini3_R6", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R6", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini3_R7", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R7", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4R9", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R9", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SlimevrMini4R11", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R11", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_StackedSmol", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_StackedSmol", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_StackedSmol", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_StackedSmol", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_I2C_StackedSmol", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_NoSleep_I2C_StackedSmol", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_SPI_StackedSmol", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_NoSleep_SPI_StackedSmol", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_Mag_StackedSmol", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_I2C_Mag_StackedSmol", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_Mag_StackedSmol", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_SPI_Mag_StackedSmol", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_I2C_Mag_StackedSmol", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_NoSleep_I2C_Mag_StackedSmol", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_SPI_Mag_StackedSmol", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoCLK_NoSleep_SPI_Mag_StackedSmol", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "nrf52840dongle/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Nordic_eByte_Dongle_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "holyiot_21017/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Holyiot_Dongle_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_ProMicro_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_XIAO_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "etee_dongle_uf2/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_etee_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "nrf52840dk/nrf52840", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_nRF52840dk_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p1_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P1_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p2_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P2_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p3_uf2/nrf52833", clk: "N/A", type: "receiver", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P3_TDMA_Receiver", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_I2C_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_I2C_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_SPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_SPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_smSPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_smSPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_smSPI_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_smSPI_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_Chrysalis_ProMicro", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_Chrysalis_ProMicro", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/i2c", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_I2C_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/spi", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_SPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/smspi", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_smSPI_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_Chrysalis_Mag_ProMicro", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "promicro_uf2/nrf52840/chrysalis", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_Chrysalis_Mag_ProMicro", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_XIAO", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_XIAO", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_CLK_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_Mag_XIAO", magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_Mag_XIAO", magnetometer: "enabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_XIAO_Sense", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_XIAO_Sense", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_XIAO_Sense", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "xiao_ble/nrf52840/sense", clk: "disabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_XIAO_Sense", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_R3", magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimenrf_r3/nrf52840/uf2", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_R3", magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p1_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini2", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p2_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini2", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini3_R6", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r6_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini3_R6", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini3_R7", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p3r7_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini3_R7", magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
+                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4R9", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r9_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4R9", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4R11", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "slimevrmini_p4r11_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "disabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4R11", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_TDMA_Mochi", magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
+                  {boardname: "mochi_uf2/nrf52833", clk: "enabled", type: "tracker", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", extraaction: "enabled", fileformat: "hex", filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mochi", magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
                 ]
     if: always()
     runs-on: ubuntu-latest
@@ -134,6 +245,25 @@ jobs:
           echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
           git log -1 --pretty=%B >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: ✔️ Checkout repository
+        if: always()
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Generate tag
+        if: always()
+        run: |
+          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: 🏷️ Create or Update Tag
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -f "${TAG_NAME}"
+          git push -f origin "${TAG_NAME}"
 
       - name: 🧹 Clean Landing Site
         run: |
@@ -186,21 +316,16 @@ jobs:
         # only for the arm-zephyr-eabi (Cortex-M) architecture, since we don't
         # need the other toolchains (xtensa, riscv, etc.)
         run: |
-          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.4/zephyr-sdk-0.17.4_linux-x86_64_minimal.tar.xz
-          tar xf zephyr-sdk-0.17.4_linux-x86_64_minimal.tar.xz -C ~/
-          ~/zephyr-sdk-0.17.4/setup.sh -c -t arm-zephyr-eabi
-      - name: 🧩 Install Nordic CLI Tools
-        run: |
-          wget -qO nrf-command-line-tools.tar.gz https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/desktop-software/nrf-command-line-tools/sw/versions-10-x-x/10-24-2/nrf-command-line-tools-10.24.2_linux-amd64.tar.gz
-          tar -xzf nrf-command-line-tools.tar.gz
-          sudo cp nrf-command-line-tools/bin/mergehex /usr/local/bin/
-          sudo cp nrf-command-line-tools/bin/nrfjprog /usr/local/bin/
-          sudo chmod +x /usr/local/bin/mergehex
-          sudo chmod +x /usr/local/bin/nrfjprog
+          wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.4/zephyr-sdk-0.17.4_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk_linux-x86_64_minimal.tar.xz -C ~/
+          rm -rf ~/zephyr-sdk
+          mv ~/zephyr-sdk-*/ ~/zephyr-sdk
+          ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
       - name: ♻️ Initialize Zephyr Workspace
-        # Set up the Zephyr workspace and install the Python dependencies
         run: |
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' west.yml
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
           cd zephyr-workspace
           sudo rm -rf .west
           west init -l SlimeNRF-CI
@@ -221,7 +346,7 @@ jobs:
 
       - name: 🔨 Build SlimeVR-Tracker-nRF-Receiver - ${{ matrix.boards.boardname }}
       # Receiver Firmware Build 
-        if: ${{ matrix.boards.type == 'receiver' }}
+        if: ${{ matrix.boards.type == 'receiver' && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF-Receiver/build
@@ -237,6 +362,24 @@ jobs:
 
           mv SlimeVR-Tracker-nRF-Receiver/build/SlimeVR-Tracker-nRF-Receiver/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
+      - name: 🔨 Build SlimeVR-Tracker-nRF-Receiver-TDMA - ${{ matrix.boards.boardname }}
+      # Receiver Firmware Build (TDMA)
+        if: ${{ matrix.boards.type == 'receiver' && (contains(matrix.boards.filename, 'TDMA')) }}
+        run: |
+          cd zephyr-workspace
+          sudo rm -rf SlimeVR-Tracker-nRF-Receiver-TDMA/build
+          mkdir SlimeVR-Tracker-nRF-Receiver-TDMA/build
+
+          west build \
+              --board ${{ matrix.boards.boardname }} \
+              --pristine=always SlimeVR-Tracker-nRF-Receiver-TDMA \
+              --build-dir SlimeVR-Tracker-nRF-Receiver-TDMA/build \
+              -- \
+              -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DBOARD_ROOT=../SlimeVR-Tracker-nRF-Receiver-TDMA
+
+          mv SlimeVR-Tracker-nRF-Receiver-TDMA/build/SlimeVR-Tracker-nRF-Receiver-TDMA/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+
       - name: 🔧 Disabling External Clock
         if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.clk == 'disabled') }}
         run: |
@@ -246,8 +389,12 @@ jobs:
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s|$find|$replace|g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling External Clock
@@ -258,8 +405,11 @@ jobs:
           replace="clk-gpios"
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
           sed -i "s/$find/$replace/g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Extra Action
@@ -267,6 +417,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling Extra Action
@@ -274,6 +425,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Magnetometer
@@ -281,6 +433,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Enabling Magnetometer
@@ -288,6 +441,7 @@ jobs:
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔧 Disabling Sleep
@@ -298,6 +452,10 @@ jobs:
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_SENSOR_USE_LOW_POWER_2=n" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_IMU_WAKE_UP=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_SENSOR_USE_LOW_POWER_2=n" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=n" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> Stacked-SmolSlime/prj.conf
@@ -309,6 +467,8 @@ jobs:
           cd zephyr-workspace
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> SlimeVR-Tracker-nRF/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> SlimeVR-Tracker-nRF/prj.conf
+          printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
+          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> SlimeVR-Tracker-nRF-TDMA/prj.conf
           printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> Stacked-SmolSlime/prj.conf
           printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> Stacked-SmolSlime/prj.conf
 
@@ -321,6 +481,9 @@ jobs:
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s|$find|$replace|g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
 
       - name: 🔧 Enabling SW0 Button
@@ -332,19 +495,14 @@ jobs:
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/nordic/promicro_uf2/promicro_uf2.dts
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble.overlay
+          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF-TDMA/boards/xiao_ble_nrf52840_sense.overlay
           sed -i "s/$find/$replace/g" Stacked-SmolSlime/boards/nordic/promicro_uf2/promicro_uf2.dts
-
-      - name: 🔧 Adjusting Flash Load Offset
-        if: ${{ (matrix.boards.fileformat == 'hex') && (matrix.boards.mergehex != '') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_FLASH_LOAD_OFFSET=0xF000" >> SlimeVR-Tracker-nRF-Receiver/prj.conf
-          printf "\n\nCONFIG_FLASH_LOAD_OFFSET=0xF000" >> SlimeVR-Tracker-nRF/prj.conf
-          printf "\n\nCONFIG_FLASH_LOAD_OFFSET=0xF000" >> Stacked-SmolSlime/prj.conf
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
       # Tracker Firmware Build 
-        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) }}
+        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF/build
@@ -360,9 +518,30 @@ jobs:
 
           mv SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
+      - name: 🔨 Build SlimeVR-Tracker-nRF-TDMA - ${{ matrix.boards.boardname }}
+      # Tracker Firmware Build (TDMA)
+        if: ${{ (matrix.boards.type == 'tracker') && (!contains(matrix.boards.filename, 'Stacked')) && (contains(matrix.boards.filename, 'TDMA')) }}
+        run: |
+          cd zephyr-workspace
+          sudo cp -r SlimeVR-Tracker-nRF/vqf-c SlimeVR-Tracker-nRF-TDMA/
+          sudo cp -r SlimeVR-Tracker-nRF/Fusion SlimeVR-Tracker-nRF-TDMA/
+          sudo cp -r SlimeVR-Tracker-nRF/NXP-ISSDK-SensorFusion SlimeVR-Tracker-nRF-TDMA/
+          sudo rm -rf SlimeVR-Tracker-nRF-TDMA/build
+          mkdir SlimeVR-Tracker-nRF-TDMA/build
+
+          west build \
+              --board ${{ matrix.boards.boardname }} \
+              --pristine=always SlimeVR-Tracker-nRF-TDMA \
+              --build-dir SlimeVR-Tracker-nRF-TDMA/build \
+              -- \
+              -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DBOARD_ROOT=../SlimeVR-Tracker-nRF-TDMA
+
+          mv SlimeVR-Tracker-nRF-TDMA/build/SlimeVR-Tracker-nRF-TDMA/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+
       - name: 🔨 Build Stacked-SmolSlime - ${{ matrix.boards.boardname }}
       # Tracker Firmware Build 
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (!contains(matrix.boards.filename, 'TDMA')) }}
         run: |
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> Stacked-SmolSlime/prj.conf
@@ -371,6 +550,19 @@ jobs:
           sudo cp -r SlimeVR-Tracker-nRF/NXP-ISSDK-SensorFusion Stacked-SmolSlime/
           sudo rm -rf Stacked-SmolSlime/build
           mkdir Stacked-SmolSlime/build
+          sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedi2c.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedspi.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedi2c.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedspi.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.yml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
 
           west build \
               --board ${{ matrix.boards.boardname }} \
@@ -382,17 +574,6 @@ jobs:
 
           mv Stacked-SmolSlime/build/Stacked-SmolSlime/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
-      - name: 🔀 Merge Hex - ${{ matrix.boards.boardname }}
-      # Combining Bootloader and Firmware Build
-        if: ${{ (matrix.boards.fileformat == 'hex') && (matrix.boards.mergehex != '') }}
-        run: |
-          cd zephyr-workspace/Releases
-          mv ${{ matrix.boards.filename }}.hex zephyr.hex
-          wget -O bootloader.hex ${{ matrix.boards.mergehex }}
-          printf ":02000004000FEC\n:04F0000001000000B1\n:00000001FF\n" > skip_crc.hex
-          mergehex -m bootloader.hex zephyr.hex skip_crc.hex -o ${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
-          rm bootloader.hex zephyr.hex skip_crc.hex
-
       - name: 💾 Upload Artifact - ${{ matrix.boards.boardname }}
         if: always()
         uses: actions/upload-artifact@v5
@@ -402,7 +583,7 @@ jobs:
           # A file, directory or wildcard pattern that describes what to upload
           path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
 
-      - name: 📁 Create/Update Github Release
+      - name: 📁 Create/Update Github Latest Release
         if: always()
         uses: mini-bomba/create-github-release@v1.2.0
         with:
@@ -411,7 +592,21 @@ jobs:
           prerelease: false
           name: "Latest Firmware"
           body: |
-            Successful build of the latest SlimeNRF Firmware. (Automated)
+            Latest successful SlimeNRF Firmware build. (Automated)
+          files: |
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+          clear_attachments: false
+
+      - name: 📁 Create/Update Github Daily Release
+        if: always()
+        uses: mini-bomba/create-github-release@v1.2.0
+        with:
+          token: ${{ secrets.gh_token }}
+          tag: "${{ env.TAG_NAME }}"
+          prerelease: true
+          name: "${{ env.TAG_NAME }}"
+          body: |
+            Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
             zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
           clear_attachments: false
