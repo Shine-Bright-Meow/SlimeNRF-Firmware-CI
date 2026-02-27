@@ -230,10 +230,10 @@ jobs:
       - name: ♻️ Initialize Zephyr Workspace
         run: |
           cd zephyr-workspace
-          west list
           sudo rm -rf .west
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
+          west list
           west update -r sdk-nrf@${{ matrix.boards.sdk }}
           west zephyr-export
 
