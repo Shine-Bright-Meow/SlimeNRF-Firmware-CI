@@ -231,7 +231,8 @@ jobs:
         run: |
           cd zephyr-workspace
           rm -rf .west
-          west init -m https://github.com/nrfconnect/sdk-nrf --manifest-rev ${{ matrix.boards.sdk }}
+          export SDK_REVISION=${{ matrix.boards.sdk }}
+          west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
 
