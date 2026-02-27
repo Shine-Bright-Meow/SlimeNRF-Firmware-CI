@@ -230,9 +230,13 @@ jobs:
       - name: ♻️ Initialize Zephyr Workspace
         run: |
           sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' west.yml
+          echo "Patched manifest:"
+          grep -A4 "name: sdk-nrf" west.yml
           cd zephyr-workspace
           rm -rf .west
           sed -i '/name: sdk-nrf/{n; n; s|revision: .*|revision: ${{ matrix.boards.sdk }}|}' SlimeNRF-CI/west.yml
+          echo "SDK revision after patch:"
+          grep -A4 "name: sdk-nrf" SlimeNRF-CI/west.yml
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
