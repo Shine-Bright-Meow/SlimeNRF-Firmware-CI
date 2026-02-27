@@ -24,15 +24,15 @@ jobs:
       fail-fast: false
       matrix:
         boards: [
-                  {boardname: "nrf52840dongle/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "holyiot_21017/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Holyiot_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "promicro_uf2/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_ProMicro_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "xiao_ble/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_XIAO_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "etee_dongle_uf2/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_etee_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "nrf52840dk/nrf52840", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_nRF52840dk_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "butterfly_p1_uf2/nrf52833", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P1_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {boardname: "butterfly_p2_uf2/nrf52833", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P2_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
-                  {boardname: "butterfly_p3_uf2/nrf52833", clk: "N/A", type: "receiver", sdk:"v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P3_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
+                  {boardname: "nrf52840dongle/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "holyiot_21017/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_Holyiot_Dongle_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "promicro_uf2/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_ProMicro_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "xiao_ble/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_XIAO_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "etee_dongle_uf2/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_etee_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "nrf52840dk/nrf52840", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "hex", filename: "SlimeNRF_nRF52840dk_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p1_uf2/nrf52833", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P1_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
+                  {boardname: "butterfly_p2_uf2/nrf52833", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P2_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
+                  {boardname: "butterfly_p3_uf2/nrf52833", clk: "N/A", type: "receiver", sdk: "v3.2.0", extraaction: "N/A", fileformat: "uf2", filename: "SlimeNRF_Butterfly_P3_Receiver", mergehex: "", magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
                   {boardname: "promicro_uf2/nrf52840", clk: "disabled", type: "tracker", sdk: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
                   {boardname: "promicro_uf2/nrf52840/i2c", clk: "disabled", type: "tracker", sdk: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_I2C_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
                   {boardname: "promicro_uf2/nrf52840/spi", clk: "disabled", type: "tracker", sdk: "v3.1.1", extraaction: "enabled", fileformat: "uf2", filename: "SlimeNRF_Tracker_SPI_ProMicro", mergehex: "", magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
@@ -232,8 +232,8 @@ jobs:
           cd zephyr-workspace
           sudo rm -rf .west
           west init -l SlimeNRF-CI
-          west update -r nrf@${{ matrix.boards.sdk }}
           west update --narrow -o=--depth=1
+          west update -r nrf@${{ matrix.boards.sdk }}
           west zephyr-export
 
       - name: 🐍 Install Python Dependencies
