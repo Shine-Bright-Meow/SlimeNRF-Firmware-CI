@@ -9,35 +9,12 @@ manifest:
       revision: v3.2.0
       import: true
 
-    # SlimeVR-Tracker-nRF-Receiver
-    - name: SlimeVR-Tracker-nRF-Receiver
-      url: https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git
-      path: SlimeVR-Tracker-nRF-Receiver
-      revision: main
-
     # SlimeVR-Tracker-nRF
     - name: SlimeVR-Tracker-nRF
       url: https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git
       path: SlimeVR-Tracker-nRF
       revision: main
 
-    # SlimeVR-Tracker-nRF-Receiver (TDMA)
-    - name: SlimeVR-Tracker-nRF-Receiver-TDMA
-      url: https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git
-      path: SlimeVR-Tracker-nRF-Receiver-TDMA
-      revision: tdma
-
-    # SlimeVR-Tracker-nRF (TDMA)
-    - name: SlimeVR-Tracker-nRF-TDMA
-      url: https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git
-      path: SlimeVR-Tracker-nRF-TDMA
-      revision: tdma
-
-      # Stacked-SmolSlime
-    - name: Stacked-SmolSlime
-      url: https://github.com/LyallUlric/Stacked-SmolSlime.git
-      path: Stacked-SmolSlime
-      revision: main
 
     # vqf-c
     - name: vqf-c
