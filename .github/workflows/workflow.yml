@@ -435,7 +435,7 @@ jobs:
           sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
 
       - name: 🔨 Stacked Prep
-      # Tracker Firmware Build 
+      # Stacked Confgiuration Prep
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
         run: |
           cd zephyr-workspace
