@@ -110,7 +110,7 @@ jobs:
             zephyr-workspace
             zephyr-workspace/west.yml
             zephyr-workspace/SlimeNRF-CI
-          key: west-workspace-${{ env.TAG_NAME }}
+          key: west-workspace-${{ env.RUN_TIMESTAMP }}
 
       - name: 📦 Cache Python Venv
         id: cache-venv
@@ -192,7 +192,7 @@ jobs:
             zephyr-workspace
             zephyr-workspace/west.yml
             zephyr-workspace/SlimeNRF-CI
-          key: west-workspace-${{ env.TAG_NAME }}
+          key: west-workspace-${{ env.RUN_TIMESTAMP }}
           fail-on-cache-miss: true
 
       - name: Debug
