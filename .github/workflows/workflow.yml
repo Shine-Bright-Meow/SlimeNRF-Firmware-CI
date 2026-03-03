@@ -28,33 +28,6 @@ jobs:
         if: always()
         uses: actions/checkout@v5
 
-      - name: 📝 Put Commit Hash/Name in Env Variables
-        if: always()
-        run: |
-          echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
-          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          git log -1 --pretty=%B >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: 💻 Checkout Repository
-        if: always()
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: 🏷️ Generate Tag
-        if: always()
-        run: |
-          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: 🏷️ Create or Update Tag
-        if: always()
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git tag -f "${TAG_NAME}"
-          git push -f origin "${TAG_NAME}"
-
       - name: ⏱️ Generate Timestamp
         if: always()
         run: |
@@ -154,6 +127,33 @@ jobs:
         with:
           path: zephyr-workspace/SlimeNRF-CI
           submodules: recursive
+
+      - name: 📝 Put Commit Hash/Name in Env Variables
+        if: always()
+        run: |
+          echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          git log -1 --pretty=%B >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 💻 Checkout Repository
+        if: always()
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Generate Tag
+        if: always()
+        run: |
+          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: 🏷️ Create or Update Tag
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -f "${TAG_NAME}"
+          git push -f origin "${TAG_NAME}"
 
       - name: 🧰 Cache + Install Apt Dependencies
         if: always()
