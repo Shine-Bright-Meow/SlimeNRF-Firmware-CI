@@ -35,6 +35,7 @@ jobs:
       - name: 🏷️ Prepare Metadata and Update Daily Tag
         if: always()
         run: |
+          cd $GITHUB_WORKSPACE
           GIT_HASH=$(git rev-parse --short=8 HEAD)
           GIT_MESSAGE="$(git log -1 --pretty=%B)"
           TAG_NAME="daily-$(date -u +'%Y-%m-%d')"
