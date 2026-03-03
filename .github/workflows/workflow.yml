@@ -55,6 +55,11 @@ jobs:
           git tag -f "${TAG_NAME}"
           git push -f origin "${TAG_NAME}"
 
+      - name: ⏱️ Generate Timestamp
+        if: always()
+        run: |
+          echo "RUN_TIMESTAMP=$(date -u +'%Y%m%dT%H%M%SZ')" >> $GITHUB_ENV
+
       - name: 🧹 Clean Landing Site
         if: always()
         run: |
@@ -200,8 +205,15 @@ jobs:
             venv-
           fail-on-cache-miss: true
 
+      - name: 📦 Restore Zephyr Workspace
+        id: zephyr-cache
+        uses: actions/cache@v4
+        with:
+          path: zephyr-workspace
+          key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
+
       - name: ♻️ Initialize Zephyr Workspace
-        if: always()
+        if: steps.zephyr-cache.outputs.cache-hit != 'true'
         run: |
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' west.yml
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
@@ -210,6 +222,13 @@ jobs:
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
+
+      - name: 📦 Cache Zephyr Workspace
+        if: steps.zephyr-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: zephyr-workspace
+          key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
         if: always()
