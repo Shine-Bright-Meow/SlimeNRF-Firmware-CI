@@ -74,6 +74,13 @@ jobs:
             zephyr-workspace
             zephyr-workspace/west.yml
             zephyr-workspace/SlimeNRF-CI
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
           key: west-workspace-${{ env.RUN_TIMESTAMP }}
 
       - name: 📦 Cache Python Venv
@@ -177,6 +184,13 @@ jobs:
             zephyr-workspace
             zephyr-workspace/west.yml
             zephyr-workspace/SlimeNRF-CI
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
           key: west-workspace-${{ env.RUN_TIMESTAMP }}
           fail-on-cache-miss: true
 
