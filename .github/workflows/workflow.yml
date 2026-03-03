@@ -132,12 +132,6 @@ jobs:
           path: ~/.venv
           key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
-      - name: 🐍 Install Zephyr Python Requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
-        run: |
-          cd zephyr-workspace
-          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
-
   build:
     needs: setup
     continue-on-error: true
@@ -226,6 +220,8 @@ jobs:
       - name: ♻️ Initialize Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
         run: |
+          echo "$HOME/.venv/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.venv/bin:$PATH"
           ls
           echo "Root"
           cd zephyr-workspace
@@ -239,6 +235,12 @@ jobs:
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
+
+      - name: 🐍 Install Zephyr Python Requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        run: |
+          cd zephyr-workspace
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 📦 Cache Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
