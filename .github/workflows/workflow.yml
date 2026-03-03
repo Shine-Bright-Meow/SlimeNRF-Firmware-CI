@@ -23,6 +23,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
+
       - name: 💻 Checkout Repository
         if: always()
         uses: actions/checkout@v5
@@ -31,7 +32,7 @@ jobs:
           path: zephyr-workspace/SlimeNRF-CI
           submodules: recursive
 
-      - name: 🏷️ Prepare metadata and update daily tag
+      - name: 🏷️ Prepare Metadata and Update Daily Tag
         if: always()
         run: |
           GIT_HASH=$(git rev-parse --short=8 HEAD)
