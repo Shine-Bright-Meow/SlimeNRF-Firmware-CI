@@ -93,23 +93,6 @@ jobs:
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
-      - name: Debug
-        if: always()
-        run: |
-          ls
-          echo "Root"
-          cd zephyr-workspace
-          echo "zephyr-workspace"
-          ls
-
-      - name: 📦 Cache West Workspace
-        id: cache-west
-        uses: actions/cache@v4
-        with:
-          path: zephyr-workspace
-          submodules: recursive
-          key: west-workspace-${{ env.TAG_NAME }}
-
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
@@ -135,6 +118,24 @@ jobs:
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
+
+      - name: Debug
+        if: always()
+        run: |
+          ls
+          echo "Root"
+          cd zephyr-workspace
+          echo "zephyr-workspace"
+          ls
+
+      - name: 📦 Cache West Workspace
+        id: cache-west
+        uses: actions/cache@v4
+        with:
+          path: |
+            zephyr-workspace
+            zephyr-workspace/SlimeNRF-CI
+          key: west-workspace-${{ env.TAG_NAME }}
 
   build:
     needs: setup
