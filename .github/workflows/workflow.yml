@@ -242,37 +242,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: 💻 Acquire Code
-        if: always()
-        uses: actions/checkout@v5
-
-      - name: 📝 Put commit hash/name in env variables
-        if: always()
-        run: |
-          echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
-          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          git log -1 --pretty=%B >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: ✔️ Checkout Repository
+      - name: 💻 Checkout Repository
         if: always()
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: 🏷️ Generate Tag
+      - name: 🏷️ Prepare metadata and update daily tag
         if: always()
         run: |
-          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+          GIT_HASH=$(git rev-parse --short=8 HEAD)
+          GIT_MESSAGE="$(git log -1 --pretty=%B)"
+          TAG_NAME="daily-$(date -u +'%Y-%m-%d')"
 
-      - name: 🏷️ Create or Update Tags
-        if: always()
-        run: |
+          echo "GIT_HASH=$GIT_HASH" >> $GITHUB_ENV
+          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "$GIT_MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git tag -f "${TAG_NAME}"
-          git push -f origin "${TAG_NAME}"
-          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+          git tag -f "$TAG_NAME"
+          git push -f origin "$TAG_NAME"
 
       - name: 🧹 Clean Landing Site
         if: always()
