@@ -90,10 +90,11 @@ jobs:
           libsdl2-dev \
           libmagic1
 
+      - name: 🐍 Setup Python Venv + West
+        if: always()
+        run: |
           python3 -m venv ~/.venv
           source ~/.venv/bin/activate
-          # insert the PATH changes the venv activate made to be present for
-          # future steps
           echo "PATH=$PATH" >> $GITHUB_ENV
           pip3 install west ninja
 
