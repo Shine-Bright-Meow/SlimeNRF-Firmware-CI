@@ -122,6 +122,12 @@ jobs:
           path: ~/.venv
           key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
+      - name: 🐍 Install Zephyr Python Requirements
+        if: always()
+        run: |
+          cd zephyr-workspace
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
+
   build:
     needs: setup
     continue-on-error: true
@@ -204,12 +210,6 @@ jobs:
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
-
-      - name: 🐍 Install Zephyr Python Requirements
-        if: always()
-        run: |
-          cd zephyr-workspace
-          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 🔧 Preparing Build Environment
         if: always()
