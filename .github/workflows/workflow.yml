@@ -100,14 +100,14 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace
+          key: west-workspace-${{ env.TAG_NAME }}
 
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv
+          key: venv-${{ env.TAG_NAME }}
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip
+          key: venv-pip-${{ env.TAG_NAME }}
 
   build:
     needs: setup
@@ -180,7 +180,7 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace
+          key: west-workspace-${{ env.TAG_NAME }}
           fail-on-cache-miss: true
 
       - name: 📦 Restore Python Venv
@@ -188,7 +188,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip
+          key: venv-pip-${{ env.TAG_NAME }}
           restore-keys: |
             venv-pip-
             venv-
