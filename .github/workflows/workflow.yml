@@ -195,6 +195,15 @@ jobs:
           key: west-workspace-${{ env.TAG_NAME }}
           fail-on-cache-miss: true
 
+      - name: Debug
+        if: always()
+        run: |
+          ls
+          echo "Root"
+          cd zephyr-workspace
+          echo "zephyr-workspace"
+          ls
+
       - name: 📦 Restore Python Venv
         if: always()
         uses: actions/cache/restore@v4
