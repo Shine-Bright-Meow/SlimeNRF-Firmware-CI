@@ -128,7 +128,7 @@ jobs:
           key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: always()
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
