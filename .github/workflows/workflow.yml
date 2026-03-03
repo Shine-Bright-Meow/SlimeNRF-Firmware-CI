@@ -35,20 +35,16 @@ jobs:
       - name: 🏷️ Prepare Metadata and Update Daily Tag
         if: always()
         run: |
-          cd $GITHUB_WORKSPACE
-          GIT_HASH=$(git rev-parse --short=8 HEAD)
-          GIT_MESSAGE="$(git log -1 --pretty=%B)"
-          TAG_NAME="daily-$(date -u +'%Y-%m-%d')"
-
-          echo "GIT_HASH=$GIT_HASH" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
           echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          echo "$GIT_MESSAGE" >> $GITHUB_ENV
+          git log -1 --pretty=%B >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
 
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git tag -f "$TAG_NAME"
-          git push -f origin "$TAG_NAME"
+          git tag -f "${TAG_NAME}"
+          git push -f origin "${TAG_NAME}"
 
       - name: 🧹 Clean Landing Site
         if: always()
