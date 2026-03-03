@@ -76,8 +76,8 @@ jobs:
         id: cache-sdk
         uses: actions/cache@v4
         with:
-          path: ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
-          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          path: ~/zephyr-sdk
+          key: zephyr-sdk
 
       - name: 🪁 Install Zephyr SDK
         if: always()
