@@ -209,7 +209,17 @@ jobs:
         id: zephyr-cache
         uses: actions/cache@v4
         with:
-          path: zephyr-workspace
+          path: |
+            zephyr-workspace
+            zephyr-workspace/west.yml
+            zephyr-workspace/SlimeNRF-CI
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
           fail-on-cache-miss: false
 
@@ -227,7 +237,7 @@ jobs:
           west zephyr-export
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
+        if: steps.zephyr-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
@@ -243,7 +253,17 @@ jobs:
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
-          path: zephyr-workspace
+          path: |
+            zephyr-workspace
+            zephyr-workspace/west.yml
+            zephyr-workspace/SlimeNRF-CI
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
