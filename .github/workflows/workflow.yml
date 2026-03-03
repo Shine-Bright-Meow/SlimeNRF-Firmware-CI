@@ -100,14 +100,14 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+          key: west-workspace
 
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+          key: venv
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip
 
   build:
     needs: setup
@@ -180,7 +180,7 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+          key: west-workspace
           fail-on-cache-miss: true
 
       - name: 📦 Restore Python Venv
@@ -188,7 +188,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip
           restore-keys: |
             venv-pip-
             venv-
