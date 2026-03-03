@@ -159,14 +159,14 @@ jobs:
         if: always()
         uses: actions/cache/restore@v4
         with:
-          path: ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
-          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          path: ~/zephyr-sdk
+          key: zephyr-sdk
           fail-on-cache-miss: true
 
       - name: 🪁 Register Zephyr SDK
         if: always()
         run: |
-          ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}/setup.sh -c -t arm-zephyr-eabi
+          ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
       - name: 📦 Restore West Workspace
         if: always()
