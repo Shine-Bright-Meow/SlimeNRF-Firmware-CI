@@ -63,40 +63,21 @@ jobs:
         with:
           path: zephyr-workspace/SlimeNRF-CI
 
-      - name: 🧰 Install Dependencies + West
-        if: always()
-        run: |
-          sudo apt-get update && sudo apt install --no-install-recommends \
-          git \
-          cmake \
-          ninja-build \
-          gperf \
-          ccache \
-          dfu-util \
-          device-tree-compiler \
-          wget \
-          python3-dev \
-          python3-pip \
-          python3-setuptools \
-          python3-tk \
-          python3-wheel \
-          python3-venv \
-          xz-utils \
-          file \
-          make \
-          gcc \
-          gcc-multilib \
-          g++-multilib \
-          libsdl2-dev \
-          libmagic1
+      - name: 🧰 Cache + Install apt Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: >-
+            git cmake ninja-build gperf dfu-util device-tree-compiler wget
+            python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
+            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+          version: 1.0
 
-      - name: 🐍 Setup Python Venv + West
-        if: always()
-        run: |
-          python3 -m venv ~/.venv
-          source ~/.venv/bin/activate
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          pip3 install west ninja
+      - name: 📦 Cache Zephyr SDK
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
 
       - name: 🪁 Install Zephyr SDK
         if: always()
@@ -106,6 +87,46 @@ jobs:
           rm -rf ~/zephyr-sdk
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
+
+      - name: 📦 Cache West Workspace
+        id: cache-west
+        uses: actions/cache@v4
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: west-workspace-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+
+      - name: 📦 Cache Python Venv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: ~/.venv
+          key: venv-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+
+      - name: 🐍 Setup Python Venv + West
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: |
+          python3 -m venv ~/.venv
+          ~/.venv/bin/pip install west ninja
+
+      - name: 📦 Cache PIP Requirements
+        id: cache-pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+
+      - name: 🐍 Install Zephyr Python Requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        run: |
+          cd zephyr-workspace
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
   build:
     needs: setup
@@ -123,6 +144,62 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: 💻 Checkout Repository
+        if: always()
+        uses: actions/checkout@v5
+        with:
+          path: zephyr-workspace/SlimeNRF-CI
+          submodules: recursive
+
+      - name: 🧰 Cache + Install Apt Dependencies
+        if: always()
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: >-
+            git cmake ninja-build gperf dfu-util device-tree-compiler wget
+            python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
+            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+          version: 1.0
+
+      - name: 📦 Restore Zephyr SDK
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          fail-on-cache-miss: true
+
+      - name: 🪁 Register Zephyr SDK
+        if: always()
+        run: |
+          ~/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}/setup.sh -c -t arm-zephyr-eabi
+
+      - name: 📦 Restore West Workspace
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: west-workspace-${{ hashFiles('zephyr-workspace/SlimeNRF-CI/west.yml') }}
+          fail-on-cache-miss: true
+
+      - name: 📦 Restore Python Venv
+        if: always()
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          restore-keys: |
+            venv-pip-
+            venv-
+          fail-on-cache-miss: true
+
       - name: ♻️ Initialize Zephyr Workspace
         if: always()
         run: |
@@ -133,12 +210,6 @@ jobs:
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
           west zephyr-export
-
-      - name: 🐍 Install Python Dependencies
-        if: always()
-        run: |
-          cd zephyr-workspace
-          pip3 install -r zephyr/scripts/requirements.txt
 
       - name: 🔧 Preparing Build Environment
         if: always()
