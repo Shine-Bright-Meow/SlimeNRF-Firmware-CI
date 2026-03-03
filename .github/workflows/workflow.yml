@@ -77,10 +77,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/zephyr-sdk
-          key: zephyr-sdk
+          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
 
       - name: 🪁 Install Zephyr SDK
-        if: always()
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
           wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ env.ZEPHYR_SDK_VERSION }}/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz
           tar xf zephyr-sdk_linux-x86_64_minimal.tar.xz -C ~/
@@ -107,7 +107,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ env.TAG_NAME }}
+          key: venv-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ env.TAG_NAME }}
+          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
   build:
     needs: setup
@@ -160,7 +160,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/zephyr-sdk
-          key: zephyr-sdk
+          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
           fail-on-cache-miss: true
 
       - name: 🪁 Register Zephyr SDK
@@ -188,7 +188,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ env.TAG_NAME }}
+          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
           restore-keys: |
             venv-pip-
             venv-
