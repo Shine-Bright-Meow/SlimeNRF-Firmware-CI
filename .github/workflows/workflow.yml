@@ -97,14 +97,8 @@ jobs:
         id: cache-west
         uses: actions/cache@v4
         with:
-          path: |
-            zephyr-workspace/.west
-            zephyr-workspace/zephyr
-            zephyr-workspace/nrf
-            zephyr-workspace/modules
-            zephyr-workspace/nrfxlib
-            zephyr-workspace/bootloader
-            zephyr-workspace/tools
+          path: zephyr-workspace
+          submodules: recursive
           key: west-workspace-${{ env.TAG_NAME }}
 
       - name: 📦 Cache Python Venv
@@ -183,14 +177,8 @@ jobs:
         if: always()
         uses: actions/cache/restore@v4
         with:
-          path: |
-            zephyr-workspace/.west
-            zephyr-workspace/zephyr
-            zephyr-workspace/nrf
-            zephyr-workspace/modules
-            zephyr-workspace/nrfxlib
-            zephyr-workspace/bootloader
-            zephyr-workspace/tools
+          path: zephyr-workspace
+          submodules: recursive
           key: west-workspace-${{ env.TAG_NAME }}
           fail-on-cache-miss: true
 
@@ -210,6 +198,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: zephyr-workspace
+          submodules: recursive
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
           fail-on-cache-miss: false
 
@@ -229,6 +218,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: zephyr-workspace
+          submodules: recursive
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
