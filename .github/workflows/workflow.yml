@@ -211,6 +211,7 @@ jobs:
         with:
           path: zephyr-workspace
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
+          fail-on-cache-miss: false
 
       - name: ♻️ Initialize Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
