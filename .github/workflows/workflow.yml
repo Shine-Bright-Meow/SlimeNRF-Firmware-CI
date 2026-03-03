@@ -242,7 +242,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: 💻 Acquire code
+      - name: 💻 Acquire Code
         if: always()
         uses: actions/checkout@v5
 
@@ -254,24 +254,25 @@ jobs:
           git log -1 --pretty=%B >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: ✔️ Checkout repository
+      - name: ✔️ Checkout Repository
         if: always()
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: 🏷️ Generate tag
+      - name: 🏷️ Generate Tag
         if: always()
         run: |
           echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: 🏷️ Create or Update Tag
+      - name: 🏷️ Create or Update Tags
         if: always()
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git tag -f "${TAG_NAME}"
           git push -f origin "${TAG_NAME}"
+          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: 🧹 Clean Landing Site
         if: always()
