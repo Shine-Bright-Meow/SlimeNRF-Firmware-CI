@@ -117,7 +117,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-${{ env.RUN_TIMESTAMP }}
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -130,7 +130,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ env.RUN_TIMESTAMP }}
 
   build:
     needs: setup
@@ -203,7 +203,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ env.RUN_TIMESTAMP }}
           restore-keys: |
             venv-pip-
             venv-
@@ -247,7 +247,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ env.RUN_TIMESTAMP }}
 
       - name: 📦 Cache Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
