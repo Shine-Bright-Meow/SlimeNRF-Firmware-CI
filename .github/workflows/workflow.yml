@@ -188,10 +188,10 @@ jobs:
         if: always()
         uses: actions/cache/restore@v4
         with:
-          path: zephyr-workspace
+          path: |
+            zephyr-workspace
             zephyr-workspace/west.yml
             zephyr-workspace/SlimeNRF-CI
-          submodules: recursive
           key: west-workspace-${{ env.TAG_NAME }}
           fail-on-cache-miss: true
 
@@ -211,7 +211,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: zephyr-workspace
-          submodules: recursive
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
           fail-on-cache-miss: false
 
@@ -237,7 +236,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: zephyr-workspace
-          submodules: recursive
           key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
