@@ -200,17 +200,8 @@ jobs:
             venv-
           fail-on-cache-miss: true
 
-      - name: 📦 Restore Zephyr Workspace
-        id: zephyr-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            zephyr-workspace
-          key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
-          fail-on-cache-miss: false
-
       - name: ♻️ Initialize Zephyr Workspace
-        if: steps.zephyr-cache.outputs.cache-hit != 'true'
+        if: always()
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
@@ -223,7 +214,7 @@ jobs:
           west zephyr-export
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: steps.zephyr-pip.outputs.cache-hit != 'true'
+        if: always()
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
@@ -234,14 +225,6 @@ jobs:
         with:
           path: ~/.venv
           key: venv-pip-${{ github.run_id }}
-
-      - name: 📦 Cache Zephyr Workspace
-        if: steps.zephyr-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: |
-            zephyr-workspace
-          key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
         if: always()
@@ -356,6 +339,7 @@ jobs:
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF/build
+          mkdir SlimeVR-Tracker-nRF/build
 
           west build \
               --board ${{ matrix.boards.boardname }} \
