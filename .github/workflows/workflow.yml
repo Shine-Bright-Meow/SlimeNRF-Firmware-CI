@@ -66,15 +66,6 @@ jobs:
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
-      - name: Debug
-        if: always()
-        run: |
-          ls
-          echo "Root"
-          cd zephyr-workspace
-          echo "zephyr-workspace"
-          ls
-
       - name: 📦 Cache West Workspace
         id: cache-west
         uses: actions/cache@v4
@@ -189,15 +180,6 @@ jobs:
           key: west-workspace-${{ env.RUN_TIMESTAMP }}
           fail-on-cache-miss: true
 
-      - name: Debug
-        if: always()
-        run: |
-          ls
-          echo "Root"
-          cd zephyr-workspace
-          echo "zephyr-workspace"
-          ls
-
       - name: 📦 Restore Python Venv
         if: always()
         uses: actions/cache/restore@v4
@@ -222,12 +204,6 @@ jobs:
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
-          ls
-          echo "Root"
-          cd zephyr-workspace
-          echo "zephyr-workspace"
-          ls
-          cd ..
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' west.yml  || true
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml  || true
           cd zephyr-workspace
@@ -369,7 +345,6 @@ jobs:
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF/build
-          mkdir SlimeVR-Tracker-nRF/build
 
           west build \
               --board ${{ matrix.boards.boardname }} \
