@@ -242,6 +242,13 @@ jobs:
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
+      - name: 📦 Cache PIP Requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+
       - name: 📦 Cache Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v4
