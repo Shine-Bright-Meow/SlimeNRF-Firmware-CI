@@ -28,11 +28,6 @@ jobs:
         if: always()
         uses: actions/checkout@v5
 
-      - name: ⏱️ Generate Timestamp
-        if: always()
-        run: |
-          echo "RUN_TIMESTAMP=$(date -u +'%Y%m%dT%H%M%SZ')" >> $GITHUB_ENV
-
       - name: 🧹 Clean Landing Site
         if: always()
         run: |
@@ -81,14 +76,14 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ env.RUN_TIMESTAMP }}
+          key: west-workspace-${{ github.run_id }}
 
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ env.RUN_TIMESTAMP }}
+          key: venv-${{ github.run_id }}
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -101,7 +96,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ env.RUN_TIMESTAMP }}
+          key: venv-pip-${{ github.run_id }}
 
   build:
     needs: setup
@@ -191,7 +186,7 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ env.RUN_TIMESTAMP }}
+          key: west-workspace-${{ github.run_id }}
           fail-on-cache-miss: true
 
       - name: 📦 Restore Python Venv
@@ -199,7 +194,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ env.RUN_TIMESTAMP }}
+          key: venv-pip-${{ github.run_id }}
           restore-keys: |
             venv-pip-
             venv-
@@ -211,16 +206,7 @@ jobs:
         with:
           path: |
             zephyr-workspace
-            zephyr-workspace/west.yml
-            zephyr-workspace/SlimeNRF-CI
-            zephyr-workspace/.west
-            zephyr-workspace/zephyr
-            zephyr-workspace/nrf
-            zephyr-workspace/modules
-            zephyr-workspace/nrfxlib
-            zephyr-workspace/bootloader
-            zephyr-workspace/tools
-          key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
+          key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
           fail-on-cache-miss: false
 
       - name: ♻️ Initialize Zephyr Workspace
@@ -247,7 +233,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ env.RUN_TIMESTAMP }}
+          key: venv-pip-${{ github.run_id }}
 
       - name: 📦 Cache Zephyr Workspace
         if: steps.zephyr-cache.outputs.cache-hit != 'true'
@@ -255,16 +241,7 @@ jobs:
         with:
           path: |
             zephyr-workspace
-            zephyr-workspace/west.yml
-            zephyr-workspace/SlimeNRF-CI
-            zephyr-workspace/.west
-            zephyr-workspace/zephyr
-            zephyr-workspace/nrf
-            zephyr-workspace/modules
-            zephyr-workspace/nrfxlib
-            zephyr-workspace/bootloader
-            zephyr-workspace/tools
-          key: zephyr-${{ env.RUN_TIMESTAMP }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
+          key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: 🔧 Preparing Build Environment
         if: always()
