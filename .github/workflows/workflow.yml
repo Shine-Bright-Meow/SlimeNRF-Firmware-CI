@@ -399,8 +399,25 @@ jobs:
             venv-
           fail-on-cache-miss: true
 
+      - name: 📦 Cache Zephyr Workspace
+        id: zephyr-workspace
+        uses: actions/cache@v4
+        with:
+          path: |
+            zephyr-workspace
+            zephyr-workspace/west.yml
+            zephyr-workspace/SlimeNRF-CI
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
+
       - name: ♻️ Initialize Zephyr Workspace
-        if: always()
+        if: steps.zephyr-workspace.outputs.cache-hit != 'true'
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
