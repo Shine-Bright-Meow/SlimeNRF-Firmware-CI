@@ -442,6 +442,14 @@ jobs:
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
+      - name: ♻️ Register Zephyr Workspace
+        if: steps.zephyr-workspace.outputs.cache-hit == 'true'
+        run: |
+          echo "$HOME/.venv/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.venv/bin:$PATH"
+          cd zephyr-workspace
+          west zephyr-export
+
       - name: 🔧 Preparing Build Environment
         if: always()
         run: |
