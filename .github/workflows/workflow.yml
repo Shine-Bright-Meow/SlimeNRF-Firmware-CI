@@ -185,6 +185,12 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
+      - name: 🔎 Resolve Remote Commit
+        id: resolve-commit
+        run: |
+          COMMIT=$(git ls-remote "${{ matrix.boards.repository_url }}" "${{ matrix.boards.repository_revision }}" | cut -f1)
+          echo "COMMIT=$COMMIT" >> $GITHUB_OUTPUT
+
       - name: 📝 Put Commit Hash/Name in Env Variables
         run: |
           echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
@@ -303,12 +309,28 @@ jobs:
 
           west zephyr-export
 
-          # Checkout firmware repo (tracker/receiver) separately; fetch third-party deps via git submodules.
+      - name: 📦 Restore Repository
+        id: cache-repository
+        uses: actions/cache/restore@v4
+        with:
+          path: zephyr-workspace/SlimeVR-Tracker-nRF
+          key: firmware-${{ steps.resolve-commit.outputs.COMMIT }}
+
+      - name: 💻 Clone Repository
+        if: steps.cache-repository.outputs.cache-hit != 'true'
+        run: |
+          cd zephyr-workspace
           rm -rf SlimeVR-Tracker-nRF
           git clone --filter=blob:none --no-checkout "${{ matrix.boards.repository_url }}" SlimeVR-Tracker-nRF
-          git -C SlimeVR-Tracker-nRF fetch --depth 1 origin "${{ matrix.boards.repository_revision }}"
-          git -C SlimeVR-Tracker-nRF checkout FETCH_HEAD
+          git -C SlimeVR-Tracker-nRF checkout ${{ steps.resolve-commit.outputs.COMMIT }}
           git -C SlimeVR-Tracker-nRF submodule update --init --recursive --depth 1
+
+      - name: 📦 Save Repository Cache
+        if: steps.cache-repository.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: zephyr-workspace/SlimeVR-Tracker-nRF
+          key: firmware-${{ steps.resolve-commit.outputs.COMMIT }}
 
       - name: 🐍 Install Zephyr Python Requirements
         run: |
