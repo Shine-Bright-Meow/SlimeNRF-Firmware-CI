@@ -417,7 +417,7 @@ jobs:
           key: zephyr-${{ github.run_id }}-${{ matrix.boards.repository_url }}-${{ matrix.boards.repository_revision }}
 
       - name: ♻️ Initialize Zephyr Workspace
-        if: steps.zephyr-workspace.outputs.cache-hit != 'true'
+        if: always()
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
@@ -441,14 +441,6 @@ jobs:
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
-
-      - name: ♻️ Register Zephyr Workspace
-        if: steps.zephyr-workspace.outputs.cache-hit == 'true'
-        run: |
-          echo "$HOME/.venv/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.venv/bin:$PATH"
-          cd zephyr-workspace
-          west zephyr-export
 
       - name: 🔧 Preparing Build Environment
         if: always()
