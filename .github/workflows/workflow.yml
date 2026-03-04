@@ -226,7 +226,7 @@ jobs:
           key: venv-pip-${{ github.run_id }}
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true's
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
