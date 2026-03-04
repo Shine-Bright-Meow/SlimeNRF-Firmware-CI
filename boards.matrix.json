@@ -28,10 +28,6 @@
     "sdk_v3_1_1": {
       "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
       "sdk_revision": "v3.1.1"
-    },
-    "sdk_v3_1_0": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.1.0"
     }
   },
   "variants": [
@@ -1013,7 +1009,7 @@
     "slimevr_tracker_nrf_receiver_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "dev",
-      "profile": "sdk_v3_1_branch"
+      "profile": "sdk_v3_1_1"
     },
     "slimevr_tracker_nrf_main": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
@@ -1038,7 +1034,7 @@
     "slimevr_tracker_nrf_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
       "repository_revision": "dev",
-      "profile": "sdk_v3_1_0"
+      "profile": "sdk_v3_1_1"
     }
   }
 }
