@@ -226,17 +226,10 @@ jobs:
           key: venv-pip-${{ github.run_id }}
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: always()
+        if: steps.cache-pip.outputs.cache-hit != 'true's
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
-
-      - name: 📦 Cache PIP Requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: ~/.venv
-          key: venv-pip-${{ github.run_id }}
 
       - name: 🔧 Preparing Build Environment
         if: always()
