@@ -66,7 +66,7 @@
       "filename": "SlimeNRF_Butterfly_P2_Receiver"
     },
     {
-      "boardname": "butterfly_p3_uf2/nrf52833",
+      "boardname": "butterfly_p3/nrf52820",
       "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P3_Receiver"
@@ -118,12 +118,6 @@
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P2_TDMA_Receiver"
-    },
-    {
-      "boardname": "butterfly_p3_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_receiver_tdma",
-      "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P3_TDMA_Receiver"
     },
     {
       "boardname": "etee_dongle_uf2/nrf52840",
