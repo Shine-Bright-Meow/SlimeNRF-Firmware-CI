@@ -419,15 +419,12 @@ jobs:
       - name: ♻️ Initialize Zephyr Workspace
         if: steps.zephyr-workspace.outputs.cache-hit != 'true'
         run: |
-          echo "$HOME/.venv/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.venv/bin:$PATH"
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' west.yml
           sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
           cd zephyr-workspace
           sudo rm -rf .west
           west init -l SlimeNRF-CI
           west update --narrow -o=--depth=1
-          west zephyr-export
 
       - name: 📦 Cache PIP Requirements
         id: cache-pip
@@ -443,7 +440,7 @@ jobs:
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: ♻️ Register Zephyr Workspace
-        if: steps.zephyr-workspace.outputs.cache-hit == 'true'
+        if: always()
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
