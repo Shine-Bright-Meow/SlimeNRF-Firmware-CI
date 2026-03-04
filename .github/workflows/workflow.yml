@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-  create:
   workflow_dispatch:
   schedule:
     - cron: "30 */12 * * *"
@@ -23,19 +22,6 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-
-      - name: 💻 Checkout Repository
-        if: always()
-        uses: actions/checkout@v5
-
-      - name: 🧹 Clean Landing Site
-        if: always()
-        run: |
-          sudo rm -rf zephyr-workspace/SlimeNRF-CI
-      - uses: actions/checkout@v5
-        with:
-          path: zephyr-workspace/SlimeNRF-CI
-
       - name: 🧰 Cache + Install apt Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -61,29 +47,14 @@ jobs:
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
-      - name: 📦 Cache West Workspace
-        id: cache-west
-        uses: actions/cache@v4
-        with:
-          path: |
-            zephyr-workspace
-            zephyr-workspace/west.yml
-            zephyr-workspace/SlimeNRF-CI
-            zephyr-workspace/.west
-            zephyr-workspace/zephyr
-            zephyr-workspace/nrf
-            zephyr-workspace/modules
-            zephyr-workspace/nrfxlib
-            zephyr-workspace/bootloader
-            zephyr-workspace/tools
-          key: west-workspace-${{ github.run_id }}
+      # West workspace cache is handled in the build job (keyed by resolved SDK SHA).
 
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ github.run_id }}
+          key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -91,264 +62,150 @@ jobs:
           python3 -m venv ~/.venv
           ~/.venv/bin/pip install west ninja
 
+  generate_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+    steps:
+      - name: 💻 Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: 🧮 Generate build matrix from JSON
+        id: gen
+        run: |
+          set -euo pipefail
+
+          # Expand dependency profiles + sources + variant templates into the final GitHub Actions matrix JSON.
+          # Output format must be: {"boards":[...]} to match the downstream usage: matrix.boards.*
+          MATRIX_FILE="boards.matrix.json"
+          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/boards.matrix.json" ]; then
+            MATRIX_FILE="SlimeNRF-Firmware-CI/boards.matrix.json"
+          fi
+
+          MATRIX="$(jq -c '
+            def cartesian($obj):
+              reduce ($obj | keys[]) as $k
+                ([{}]; [ .[] as $a | $obj[$k][] as $v | ($a + {($k): $v}) ]);
+
+            def merge_source_profile($v; $profiles; $sources):
+              ($sources[$v.source]) as $s
+              | if $s == null then
+                  error("Unknown source key: \($v.source)")
+                else
+                  ($profiles[$s.profile]) as $p
+                  | if $p == null then
+                      error("Unknown profile key in source: \($s.profile)")
+                    else
+                      ($v + $s + $p | del(.source, .profile))
+                    end
+                end;
+
+            def hasVar($v; $k):
+              (($v.matrix // {}) | has($k));
+
+            def mk_filename($v; $cfg):
+              ($v.name_style // "combined") as $style
+              | ($v.source == "slimevr_tracker_nrf_tdma") as $is_tdma
+              | (["SlimeNRF", "Tracker"] + (if $is_tdma then ["TDMA"] else [] end)) as $base
+              | ($v.name.bus? // null) as $bus
+              | ($v.name.board) as $board
+              | if $style == "noclk" then
+                  ($base
+                    + (if hasVar($v; "clk") and ($cfg.clk == "disabled") then ["NoCLK"] else [] end)
+                    + (if hasVar($v; "sleep") and ($cfg.sleep == "disabled") then ["NoSleep"] else [] end)
+                    + (if $bus != null then [$bus] else [] end)
+                    + (if hasVar($v; "magnetometer") and ($cfg.magnetometer == "enabled") then ["Mag"] else [] end)
+                    + [$board]
+                  ) | join("_")
+                else
+                  (hasVar($v; "sleep") and ($cfg.sleep == "disabled")) as $sleep_off
+                  | (hasVar($v; "clk") and ($cfg.clk == "enabled")) as $clk_on
+                  | (if $sleep_off and $clk_on then "NoSleepCLK"
+                     elif $sleep_off then "NoSleep"
+                     elif $clk_on then "CLK"
+                     else null end) as $sleepclk
+                  | ($base
+                      + (if hasVar($v; "sw0") and ($cfg.sw0 == "enabled") then ["SW0"] else [] end)
+                      + (if $sleepclk != null then [$sleepclk] else [] end)
+                      + (if $bus != null then [$bus] else [] end)
+                      + (if hasVar($v; "magnetometer") and ($cfg.magnetometer == "enabled") then ["Mag"] else [] end)
+                      + [$board]
+                    ) | join("_")
+                end;
+
+            def expand($v; $profiles; $sources):
+              if ($v.matrix? // null) == null then
+                [($v
+                  | merge_source_profile(.; $profiles; $sources)
+                  | del(.defaults, .matrix, .name, .name_style)
+                )]
+              else
+                (cartesian($v.matrix)
+                  | map(
+                      . as $combo
+                      | (($v.defaults // {}) + $combo) as $cfg
+                      | ($v
+                        | merge_source_profile(.; $profiles; $sources)
+                        | . + $cfg
+                        | .filename = mk_filename($v; $cfg)
+                        | del(.defaults, .matrix, .name, .name_style)
+                      )
+                    )
+                )
+              end;
+
+            . as $root
+            | ($root.profiles) as $profiles
+            | ($root.sources) as $sources
+            | {boards: (
+                $root.variants
+                | map(expand(.; $profiles; $sources))
+                | add
+              )}
+          ' "$MATRIX_FILE")"
+
+          # Guardrail: GitHub step output has size limits; fail fast if absurdly large.
+          echo "Matrix JSON length: ${#MATRIX}"
+          if [ ${#MATRIX} -gt 900000 ]; then
+            echo "Matrix output too large for GITHUB_OUTPUT (${#MATRIX} bytes)" >&2
+            exit 1
+          fi
+
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
   build:
-    needs: setup
+    needs: [setup, generate_matrix]
     continue-on-error: true
     strategy:
       fail-fast: false
-      matrix:
-        boards: [
-                  {filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver", fileformat: "hex", boardname: "nrf52840dongle/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Holyiot_Dongle_Receiver", fileformat: "hex", boardname: "holyiot_21017/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_ProMicro_Receiver", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_XIAO_Receiver", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_etee_Receiver", fileformat: "uf2", boardname: "etee_dongle_uf2/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_nRF52840dk_Receiver", fileformat: "hex", boardname: "nrf52840dk/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.2-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Butterfly_P1_Receiver", fileformat: "uf2", boardname: "butterfly_p1_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Butterfly_P2_Receiver", fileformat: "uf2", boardname: "butterfly_p2_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
-                  {filename: "SlimeNRF_Butterfly_P3_Receiver", fileformat: "uf2", boardname: "butterfly_p3_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"},
-                  {filename: "SlimeNRF_Tracker_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_Chrysalis_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git", repository_revision: "master", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git", repository_revision: "master", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_Chrysalis_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git", repository_revision: "master", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_Chrysalis_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git", repository_revision: "master", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_CLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleepCLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_CLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleepCLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SW0_NoSleep_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_R3", fileformat: "uf2", boardname: "slimenrf_r3/nrf52840/uf2", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_R3", fileformat: "uf2", boardname: "slimenrf_r3/nrf52840/uf2", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini", fileformat: "uf2", boardname: "slimevrmini_p1_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini", fileformat: "uf2", boardname: "slimevrmini_p1_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini2", fileformat: "uf2", boardname: "slimevrmini_p2_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini2", fileformat: "uf2", boardname: "slimevrmini_p2_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini3_R6", fileformat: "uf2", boardname: "slimevrmini_p3r6_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R6", fileformat: "uf2", boardname: "slimevrmini_p3r6_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini3_R7", fileformat: "uf2", boardname: "slimevrmini_p3r7_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini3_R7", fileformat: "uf2", boardname: "slimevrmini_p3r7_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini4", fileformat: "uf2", boardname: "slimevrmini_p4_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4", fileformat: "uf2", boardname: "slimevrmini_p4_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini4R9", fileformat: "uf2", boardname: "slimevrmini_p4r9_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R9", fileformat: "uf2", boardname: "slimevrmini_p4r9_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SlimevrMini4R11", fileformat: "uf2", boardname: "slimevrmini_p4r11_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SlimevrMini4R11", fileformat: "uf2", boardname: "slimevrmini_p4r11_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_I2C_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_I2C_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SPI_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SPI_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_I2C_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_NoSleep_I2C_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_SPI_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_NoSleep_SPI_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_I2C_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_I2C_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_SPI_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_SPI_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_I2C_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_NoSleep_I2C_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_SPI_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoCLK_NoSleep_SPI_Mag_StackedSmol", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/LyallUlric/Stacked-SmolSlime.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_Mochi", fileformat: "uf2", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_Mochi", fileformat: "uf2", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_Mochi", fileformat: "hex", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_NoSleep_Mochi", fileformat: "hex", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "main", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.1", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Nordic_eByte_Dongle_TDMA_Receiver", fileformat: "hex", boardname: "nrf52840dongle/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Holyiot_Dongle_TDMA_Receiver", fileformat: "hex", boardname: "holyiot_21017/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_ProMicro_TDMA_Receiver", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_XIAO_TDMA_Receiver", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_etee_TDMA_Receiver", fileformat: "uf2", boardname: "etee_dongle_uf2/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_nRF52840dk_TDMA_Receiver", fileformat: "hex", boardname: "nrf52840dk/nrf52840", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Butterfly_P1_TDMA_Receiver", fileformat: "uf2", boardname: "butterfly_p1_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Butterfly_P2_TDMA_Receiver", fileformat: "uf2", boardname: "butterfly_p2_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Butterfly_P3_TDMA_Receiver", fileformat: "uf2", boardname: "butterfly_p3_uf2/nrf52833", type: "receiver", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_I2C_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_SPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_smSPI_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_Chrysalis_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_Chrysalis_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_I2C_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/i2c", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_SPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_smSPI_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/smspi", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_Chrysalis_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_Chrysalis_Mag_ProMicro", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_TDMA_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_CLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleepCLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_CLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleepCLK_Mag_XIAO", fileformat: "uf2", boardname: "xiao_ble/nrf52840", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_TDMA_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SW0_NoSleep_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_XIAO_Sense", fileformat: "uf2", boardname: "xiao_ble/nrf52840/sense", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "disabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_R3", fileformat: "uf2", boardname: "slimenrf_r3/nrf52840/uf2", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_R3", fileformat: "uf2", boardname: "slimenrf_r3/nrf52840/uf2", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "enabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini", fileformat: "uf2", boardname: "slimevrmini_p1_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini", fileformat: "uf2", boardname: "slimevrmini_p1_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini2", fileformat: "uf2", boardname: "slimevrmini_p2_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini2", fileformat: "uf2", boardname: "slimevrmini_p2_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini3_R6", fileformat: "uf2", boardname: "slimevrmini_p3r6_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini3_R6", fileformat: "uf2", boardname: "slimevrmini_p3r6_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini3_R7", fileformat: "uf2", boardname: "slimevrmini_p3r7_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini3_R7", fileformat: "uf2", boardname: "slimevrmini_p3r7_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "disabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4", fileformat: "uf2", boardname: "slimevrmini_p4_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4", fileformat: "uf2", boardname: "slimevrmini_p4_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4R9", fileformat: "uf2", boardname: "slimevrmini_p4r9_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4R9", fileformat: "uf2", boardname: "slimevrmini_p4r9_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_SlimevrMini4R11", fileformat: "uf2", boardname: "slimevrmini_p4r11_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_SlimevrMini4R11", fileformat: "uf2", boardname: "slimevrmini_p4r11_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "disabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_Mochi", fileformat: "uf2", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mochi", fileformat: "uf2", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_TDMA_Mochi", fileformat: "hex", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "enabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_TDMA_NoSleep_Mochi", fileformat: "hex", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git", repository_revision: "tdma", sdk_url: "https://github.com/SlimeVR/sdk-nrf.git", sdk_revision: "slime-esb", vqf_url: "https://github.com/sctanf/vqf-c.git", vqf_revision: "master", clk: "enabled", extraaction: "enabled",  magnetometer: "disabled", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Nordic_eByte_Dongle_Receiver_JitingCat", fileformat: "hex", boardname: "nrf52840dongle/nrf52840", type: "receiver", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Holyiot_Dongle_Receiver_JitingCat", fileformat: "hex", boardname: "holyiot_21017/nrf52840", type: "receiver", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_ProMicro_Receiver_JitingCat", fileformat: "uf2", boardname: "promicro_uf2/nrf52840", type: "receiver", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1-branch", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "N/A", extraaction: "N/A",  magnetometer: "N/A", sleep: "N/A", sw0: "N/A"}, 
-                  {filename: "SlimeNRF_Tracker_Mag_NoSleep_SPI_ProMicro_JitingCat", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/default_spi", type: "tracker", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.0", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "enabled", extraaction: "enabled",  magnetometer: "N/A", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_Mag_NoSleep_SPI_StackedSmol_JitingCat", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/spi", type: "tracker", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.0", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "enabled", extraaction: "enabled",  magnetometer: "N/A", sleep: "disabled", sw0: "enabled"}, 
-                  {filename: "SlimeNRF_Tracker_Mag_NoSleep_Mochi_JitingCat", fileformat: "uf2", boardname: "mochi_uf2/nrf52833", type: "tracker", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.0", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "enabled", extraaction: "enabled",  magnetometer: "N/A", sleep: "disabled", sw0: "enabled"},
-                  {filename: "SlimeNRF_Tracker_Mag_Chrysalis_ProMicro_JitingCat", fileformat: "uf2", boardname: "promicro_uf2/nrf52840/chrysalis", type: "tracker", repository_url: "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git", repository_revision: "dev", sdk_url: "https://github.com/nrfconnect/sdk-nrf.git", sdk_revision: "v3.1.0", vqf_url: "https://github.com/jitingcn/vqf-c.git", vqf_revision: "cmsis-dsp-optimization", clk: "enabled", extraaction: "enabled",  magnetometer: "N/A", sleep: "disabled", sw0: "enabled"}, 
-                ]
-    if: always()
+      matrix: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
 
       - name: 💻 Checkout Repository
-        if: always()
         uses: actions/checkout@v5
 
       - name: 📝 Put Commit Hash/Name in Env Variables
-        if: always()
         run: |
           echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
           echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
           git log -1 --pretty=%B >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: 💻 Checkout Repository
-        if: always()
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
       - name: 🏷️ Generate Tag
-        if: always()
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         run: |
           echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: 🏷️ Create or Update Tag
-        if: always()
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git tag -f "${TAG_NAME}"
           git push -f origin "${TAG_NAME}"
 
-      - name: 🧰 Cache + Install Apt Dependencies
-        if: always()
+      - name: 🧰 Cache + Install apt Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: >-
@@ -358,7 +215,6 @@ jobs:
           version: 1.0
 
       - name: 📦 Restore Zephyr SDK
-        if: always()
         uses: actions/cache/restore@v4
         with:
           path: ~/zephyr-sdk
@@ -366,18 +222,44 @@ jobs:
           fail-on-cache-miss: true
 
       - name: 🪁 Register Zephyr SDK
-        if: always()
         run: |
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
-      - name: 📦 Restore West Workspace
-        if: always()
-        uses: actions/cache/restore@v4
+      - name: 💻 Checkout CI Manifest Repo (for west init)
+        uses: actions/checkout@v5
+        with:
+          path: zephyr-workspace/SlimeNRF-CI
+
+      - name: 🔎 Resolve NCS (sdk-nrf) SHA for West Workspace Cache Key
+        id: sdk_sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_URL='${{ matrix.boards.sdk_url }}'
+          SDK_REV='${{ matrix.boards.sdk_revision }}'
+
+          # Resolve moving refs (main, v3.x-branch, etc.) to a commit SHA.
+          SDK_SHA="$(git ls-remote "$SDK_URL" \
+            "refs/heads/$SDK_REV" \
+            "refs/tags/$SDK_REV" \
+            "$SDK_REV" \
+            | head -n 1 | awk '{print $1}')"
+
+          if [ -z "$SDK_SHA" ]; then
+            echo "Failed to resolve SDK SHA for $SDK_URL @ $SDK_REV" >&2
+            exit 1
+          fi
+
+          SDK_URL_HASH="$(printf %s "$SDK_URL" | sha256sum | cut -c1-12)"
+
+          echo "sdk_sha=$SDK_SHA" >> "$GITHUB_OUTPUT"
+          echo "sdk_url_hash=$SDK_URL_HASH" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Cache West Workspace (by SDK SHA)
+        id: cache-west
+        uses: actions/cache@v4
         with:
           path: |
-            zephyr-workspace
-            zephyr-workspace/west.yml
-            zephyr-workspace/SlimeNRF-CI
             zephyr-workspace/.west
             zephyr-workspace/zephyr
             zephyr-workspace/nrf
@@ -385,134 +267,117 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ github.run_id }}
-          fail-on-cache-miss: true
+          key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk_sha.outputs.sdk_url_hash }}-${{ steps.sdk_sha.outputs.sdk_sha }}
 
       - name: 📦 Restore Python Venv
-        if: always()
+        id: restore-venv
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ github.run_id }}
+          key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
           restore-keys: |
-            venv-pip-
-            venv-
-          fail-on-cache-miss: true
+            venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-
+
+      - name: 🐍 Setup Python Venv + West
+        if: steps.restore-venv.outputs.cache-hit != 'true'
+        run: |
+          python3 -m venv ~/.venv
+          ~/.venv/bin/pip install west ninja
 
       - name: ♻️ Initialize Zephyr Workspace
-        if: always()
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
-          sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' west.yml
-          sed -i '/- name:[[:space:]]*SlimeVR-Tracker-nRF/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.repository_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.repository_revision }}|; } ; /- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; } ; /- name:[[:space:]]*vqf-c/,/revision:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.vqf_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.vqf_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
+
+          # Patch only the SDK in the west manifest (west env should be independent of the firmware repository).
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
+
+          mkdir -p zephyr-workspace
           cd zephyr-workspace
-          sudo rm -rf .west
-          west init -l SlimeNRF-CI
-          west update --narrow -o=--depth=1
+
+          if [ "${{ steps.cache-west.outputs.cache-hit }}" != "true" ]; then
+            sudo rm -rf .west zephyr nrf modules nrfxlib bootloader tools
+            west init -l SlimeNRF-CI
+            west update --narrow -o=--depth=1
+          fi
+
           west zephyr-export
 
-      - name: 📦 Cache PIP Requirements
-        id: cache-pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.venv
-          key: venv-pip-${{ github.run_id }}
+          # Checkout firmware repo (tracker/receiver) separately; fetch third-party deps via git submodules.
+          rm -rf SlimeVR-Tracker-nRF
+          git clone --filter=blob:none --no-checkout "${{ matrix.boards.repository_url }}" SlimeVR-Tracker-nRF
+          git -C SlimeVR-Tracker-nRF fetch --depth 1 origin "${{ matrix.boards.repository_revision }}"
+          git -C SlimeVR-Tracker-nRF checkout FETCH_HEAD
+          git -C SlimeVR-Tracker-nRF submodule update --init --recursive --depth 1
 
       - name: 🐍 Install Zephyr Python Requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 🔧 Preparing Build Environment
-        if: always()
         run: |
           cd zephyr-workspace
           sudo rm -rf Releases
           mkdir Releases
 
-      - name: 🔧 Disabling External Clock
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.clk == 'disabled') }}
+      - name: 🔧 Configure Tracker Options
+        if: ${{ matrix.boards.type == 'tracker' }}
+        shell: bash
         run: |
+          set -euo pipefail
           cd zephyr-workspace
-          find='clk-gpios[ \t]='
-          replace='// clk-gpios ='
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
-          printf "\n\nCONFIG_USE_SENSOR_CLOCK=n" >> SlimeVR-Tracker-nRF/prj.conf
 
-      - name: 🔧 Enabling External Clock
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.clk == 'enabled') }}
-        run: |
-          cd zephyr-workspace
-          find="\/\/\sclk-gpios"
-          replace="clk-gpios"
-          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
-          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
-          printf "\n\nCONFIG_USE_SENSOR_CLOCK=y" >> SlimeVR-Tracker-nRF/prj.conf
+          CLK='${{ matrix.boards.clk }}'
+          EXTRA='${{ matrix.boards.extraaction }}'
+          MAG='${{ matrix.boards.magnetometer }}'
+          SLEEP='${{ matrix.boards.sleep }}'
+          SW0='${{ matrix.boards.sw0 }}'
 
-      - name: 🔧 Disabling Extra Action
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.extraaction == 'disabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=n" >> SlimeVR-Tracker-nRF/prj.conf
+          append_conf() { printf "\n\n%s" "$1" >> SlimeVR-Tracker-nRF/prj.conf; }
 
-      - name: 🔧 Enabling Extra Action
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.extraaction == 'enabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_USER_EXTRA_ACTIONS=y" >> SlimeVR-Tracker-nRF/prj.conf
+          if [ "$CLK" = "disabled" ]; then
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+            append_conf 'CONFIG_USE_SENSOR_CLOCK=n'
+          elif [ "$CLK" = "enabled" ]; then
+            sed -i 's|//[[:space:]]*clk-gpios|clk-gpios|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|//[[:space:]]*clk-gpios|clk-gpios|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            append_conf 'CONFIG_USE_SENSOR_CLOCK=y'
+          fi
 
-      - name: 🔧 Disabling Magnetometer
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.magnetometer == 'disabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_SENSOR_USE_MAG=n" >> SlimeVR-Tracker-nRF/prj.conf
+          if [ "$EXTRA" = "disabled" ]; then
+            append_conf 'CONFIG_USER_EXTRA_ACTIONS=n'
+          elif [ "$EXTRA" = "enabled" ]; then
+            append_conf 'CONFIG_USER_EXTRA_ACTIONS=y'
+          fi
 
-      - name: 🔧 Enabling Magnetometer
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.magnetometer == 'enabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_SENSOR_USE_MAG=y" >> SlimeVR-Tracker-nRF/prj.conf
+          if [ "$MAG" = "disabled" ]; then
+            append_conf 'CONFIG_SENSOR_USE_MAG=n'
+          elif [ "$MAG" = "enabled" ]; then
+            append_conf 'CONFIG_SENSOR_USE_MAG=y'
+          fi
 
-      - name: 🔧 Disabling Sleep
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.sleep == 'disabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_USE_IMU_WAKE_UP=n" >> SlimeVR-Tracker-nRF/prj.conf
-          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=n" >> SlimeVR-Tracker-nRF/prj.conf
-          printf "\n\nCONFIG_SENSOR_LP_TIMEOUT=300000" >> SlimeVR-Tracker-nRF/prj.conf
-          printf "\n\nCONFIG_SENSOR_USE_LOW_POWER_2=n" >> SlimeVR-Tracker-nRF/prj.conf
+          if [ "$SLEEP" = "disabled" ]; then
+            append_conf 'CONFIG_USE_IMU_WAKE_UP=n'
+            append_conf 'CONFIG_USE_ACTIVE_TIMEOUT=n'
+            append_conf 'CONFIG_SENSOR_LP_TIMEOUT=300000'
+            append_conf 'CONFIG_SENSOR_USE_LOW_POWER_2=n'
+          elif [ "$SLEEP" = "enabled" ]; then
+            append_conf 'CONFIG_USE_IMU_WAKE_UP=y'
+            append_conf 'CONFIG_USE_ACTIVE_TIMEOUT=y'
+          fi
 
-      - name: 🔧 Enabling Sleep
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.sleep == 'enabled') }}
-        run: |
-          cd zephyr-workspace
-          printf "\n\nCONFIG_USE_IMU_WAKE_UP=y" >> SlimeVR-Tracker-nRF/prj.conf
-          printf "\n\nCONFIG_USE_ACTIVE_TIMEOUT=y" >> SlimeVR-Tracker-nRF/prj.conf
-  
-
-      - name: 🔧 Disabling SW0 Button
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.sw0 == 'disabled') }}
-        run: |
-          cd zephyr-workspace
-          find='sw0[ \t]='
-          replace='// sw0 ='
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
-          sed -i "s|$find|$replace|g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
-
-      - name: 🔧 Enabling SW0 Button
-        if: ${{ (matrix.boards.type == 'tracker') && (matrix.boards.sw0 == 'enabled') }}
-        run: |
-          cd zephyr-workspace
-          find='\/\/\ssw0\s='
-          replace='sw0 ='
-          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
-          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
-          sed -i "s/$find/$replace/g" SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          if [ "$SW0" = "disabled" ]; then
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          elif [ "$SW0" = "enabled" ]; then
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          fi
 
       - name: 🔨 Stacked Prep
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
@@ -534,7 +399,6 @@ jobs:
           curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
-        if: always()
         run: |
           cd zephyr-workspace
           sudo rm -rf SlimeVR-Tracker-nRF/build
@@ -548,18 +412,37 @@ jobs:
               -DNCS_TOOLCHAIN_VERSION=NONE \
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF
 
-          mv SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.${{ matrix.boards.fileformat }} Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+          # Note: UF2 builds also produce a .hex, so we always upload the .hex.
+          # If a .uf2 exists, upload it as a separate artifact.
+          HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
+          UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
 
+          if [ -f "$HEX_SRC" ]; then
+            mv "$HEX_SRC" "Releases/${{ matrix.boards.filename }}.hex"
+          else
+            echo "Missing expected HEX output: $HEX_SRC" >&2
+            exit 1
+          fi
 
-      - name: 💾 Upload Artifact - ${{ matrix.boards.boardname }}
-        if: always()
+          if [ -f "$UF2_SRC" ]; then
+            mv "$UF2_SRC" "Releases/${{ matrix.boards.filename }}.uf2"
+          fi
+
+      - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
-          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+          name: ${{ matrix.boards.filename }}.hex
+          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+
+      - name: 💾 Upload Artifact (UF2) - ${{ matrix.boards.boardname }}
+        if: ${{ hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.boards.filename }}.uf2
+          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
 
       - name: 📁 Create/Update Github Latest Release
-        if: always()
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
@@ -569,11 +452,12 @@ jobs:
           body: |
             Latest successful SlimeNRF Firmware build. (Automated)
           files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
           clear_attachments: false
 
       - name: 📁 Create/Update Github Daily Release
-        if: always()
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
@@ -583,5 +467,6 @@ jobs:
           body: |
             Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.${{ matrix.boards.fileformat }}
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
           clear_attachments: false

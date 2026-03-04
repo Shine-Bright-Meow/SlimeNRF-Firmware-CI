@@ -1,0 +1,1050 @@
+{
+  "schema": 1,
+  "notes": {
+    "description": "",
+    "profile_keys": [
+      "sdk_url",
+      "sdk_revision"
+    ],
+    "source_keys": [
+      "repository_url",
+      "repository_revision",
+      "profile"
+    ]
+  },
+  "profiles": {
+    "sdk_v3_2_branch": {
+      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
+      "sdk_revision": "v3.2-branch"
+    },
+    "sdk_v3_1_branch": {
+      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
+      "sdk_revision": "v3.1-branch"
+    },
+    "sdk_slime_esb": {
+      "sdk_url": "https://github.com/SlimeVR/sdk-nrf.git",
+      "sdk_revision": "slime-esb"
+    },
+    "sdk_v3_1_1": {
+      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
+      "sdk_revision": "v3.1.1"
+    },
+    "sdk_v3_1_0": {
+      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
+      "sdk_revision": "v3.1.0"
+    }
+  },
+  "variants": [
+    {
+      "boardname": "holyiot_21017/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_dev",
+      "type": "receiver",
+      "filename": "SlimeNRF_Holyiot_Dongle_Receiver_JitingCat"
+    },
+    {
+      "boardname": "nrf52840dongle/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_dev",
+      "type": "receiver",
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver_JitingCat"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_dev",
+      "type": "receiver",
+      "filename": "SlimeNRF_ProMicro_Receiver_JitingCat"
+    },
+    {
+      "boardname": "butterfly_p1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P1_Receiver"
+    },
+    {
+      "boardname": "butterfly_p2_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P2_Receiver"
+    },
+    {
+      "boardname": "butterfly_p3_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P3_Receiver"
+    },
+    {
+      "boardname": "etee_dongle_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_etee_Receiver"
+    },
+    {
+      "boardname": "holyiot_21017/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_Holyiot_Dongle_Receiver"
+    },
+    {
+      "boardname": "nrf52840dk/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_nRF52840dk_Receiver"
+    },
+    {
+      "boardname": "nrf52840dongle/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_ProMicro_Receiver"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "type": "receiver",
+      "filename": "SlimeNRF_XIAO_Receiver"
+    },
+    {
+      "boardname": "butterfly_p1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P1_TDMA_Receiver"
+    },
+    {
+      "boardname": "butterfly_p2_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P2_TDMA_Receiver"
+    },
+    {
+      "boardname": "butterfly_p3_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P3_TDMA_Receiver"
+    },
+    {
+      "boardname": "etee_dongle_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_etee_TDMA_Receiver"
+    },
+    {
+      "boardname": "holyiot_21017/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Holyiot_Dongle_TDMA_Receiver"
+    },
+    {
+      "boardname": "nrf52840dk/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_nRF52840dk_TDMA_Receiver"
+    },
+    {
+      "boardname": "nrf52840dongle/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_TDMA_Receiver"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_ProMicro_TDMA_Receiver"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_XIAO_TDMA_Receiver"
+    },
+    {
+      "boardname": "mochi_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_dev",
+      "type": "tracker",
+      "filename": "SlimeNRF_Tracker_Mag_NoSleep_Mochi_JitingCat"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/chrysalis",
+      "source": "slimevr_tracker_nrf_dev",
+      "type": "tracker",
+      "filename": "SlimeNRF_Tracker_Mag_Chrysalis_ProMicro_JitingCat"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/default_spi",
+      "source": "slimevr_tracker_nrf_dev",
+      "type": "tracker",
+      "filename": "SlimeNRF_Tracker_Mag_NoSleep_SPI_ProMicro_JitingCat"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/spi",
+      "source": "slimevr_tracker_nrf_dev",
+      "type": "tracker",
+      "filename": "SlimeNRF_Tracker_Mag_NoSleep_SPI_StackedSmol_JitingCat"
+    },
+    {
+      "boardname": "mochi_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "Mochi"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled",
+        "sleep": "enabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/i2c",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "I2C"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/smspi",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "smSPI"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/spi",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "SPI"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimenrf_r3/nrf52840/uf2",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "enabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "R3"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p2_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini2"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p3r6_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini3_R6"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p3r7_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini3_R7"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4r11_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R11"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4r9_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R9"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "XIAO"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840/sense",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "XIAO_Sense"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/chrysalis",
+      "source": "slimevr_tracker_nrf_master",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "Chrysalis"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "mochi_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "Mochi"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled",
+        "sleep": "enabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/chrysalis",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "Chrysalis"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/i2c",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "I2C"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/smspi",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "smSPI"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/spi",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "SPI"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimenrf_r3/nrf52840/uf2",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "enabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "R3"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p2_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini2"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p3r6_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini3_R6"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p3r7_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini3_R7"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4r11_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R11"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "slimevrmini_p4r9_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R9"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "XIAO"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "xiao_ble/nrf52840/sense",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "disabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ],
+        "sw0": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "XIAO_Sense"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/i2c",
+      "source": "stacked_smolslime_main",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "StackedSmol",
+        "bus": "I2C"
+      },
+      "name_style": "noclk"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/spi",
+      "source": "stacked_smolslime_main",
+      "type": "tracker",
+      "defaults": {
+        "extraaction": "enabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "clk": [
+          "disabled",
+          "enabled"
+        ],
+        "magnetometer": [
+          "disabled",
+          "enabled"
+        ],
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "StackedSmol",
+        "bus": "SPI"
+      },
+      "name_style": "noclk"
+    }
+  ],
+  "sources": {
+    "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_1_branch"
+    },
+    "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_2_branch"
+    },
+    "slimevr_tracker_nrf_receiver_tdma": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "tdma",
+      "profile": "sdk_slime_esb"
+    },
+    "slimevr_tracker_nrf_receiver_dev": {
+      "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "dev",
+      "profile": "sdk_v3_1_branch"
+    },
+    "slimevr_tracker_nrf_main": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_1_1"
+    },
+    "stacked_smolslime_main": {
+      "repository_url": "https://github.com/LyallUlric/Stacked-SmolSlime.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_1_1"
+    },
+    "slimevr_tracker_nrf_master": {
+      "repository_url": "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git",
+      "repository_revision": "master",
+      "profile": "sdk_v3_1_1"
+    },
+    "slimevr_tracker_nrf_tdma": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
+      "repository_revision": "tdma",
+      "profile": "sdk_slime_esb"
+    },
+    "slimevr_tracker_nrf_dev": {
+      "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
+      "repository_revision": "dev",
+      "profile": "sdk_v3_1_0"
+    }
+  }
+}
