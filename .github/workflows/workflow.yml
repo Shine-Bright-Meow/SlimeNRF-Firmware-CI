@@ -301,7 +301,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
           restore-keys: |
             venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-
 
@@ -316,7 +316,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
       - name: 📦 Restore Repository
         id: cache-repository
