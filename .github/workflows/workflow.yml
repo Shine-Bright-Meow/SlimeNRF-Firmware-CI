@@ -278,6 +278,22 @@ jobs:
           restore-keys: |
             venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-
 
+      - name: 📦 Restore Zephyr Workspace
+        id: cache-zephyr
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: zephyr-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk_sha.outputs.sdk_url_hash }}-${{ steps.sdk_sha.outputs.sdk_sha }}
+          restore-keys: |
+            zephyr-workspace-${{ env.ZEPHYR_SDK_VERSION }}-
+
       - name: ♻️ Initialize Zephyr Workspace
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
@@ -288,13 +304,27 @@ jobs:
           mkdir -p zephyr-workspace
           cd zephyr-workspace
 
-          if [ "${{ steps.cache-west.outputs.cache-hit }}" != "true" ]; then
+          if [ "${{ steps.cache-zephyr.outputs.cache-hit }}" != "true" ]; then
             sudo rm -rf .west zephyr nrf modules nrfxlib bootloader tools
             west init -l SlimeNRF-CI
             west update --narrow -o=--depth=1
           fi
 
           west zephyr-export
+
+      - name: 📦 Save Zephyr Workspace
+        if: steps.cache-zephyr.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: zephyr-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk_sha.outputs.sdk_url_hash }}-${{ steps.sdk_sha.outputs.sdk_sha }}
 
       - name: 📦 Restore Zephyr Python Requirements
         id: cache-pip
