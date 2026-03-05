@@ -269,6 +269,27 @@ jobs:
             zephyr-workspace/tools
           key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk_sha.outputs.sdk_url_hash }}-${{ steps.sdk_sha.outputs.sdk_sha }}
 
+      - name: 📦 Restore Zephyr Python Requirements
+        id: restore-pip
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr/scripts/requirements.txt') }}
+          restore-keys: |
+            venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-
+
+      - name: 🐍 Install Zephyr Python Requirements
+        if: steps.restore-pip.outputs.cache-hit != 'true'
+        run: |
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
+
+      - name: 📦 Save Zephyr Python Requirements
+        if: steps.restore-pip.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr/scripts/requirements.txt') }}
+
       - name: 📦 Restore Python Venv
         id: restore-venv
         uses: actions/cache/restore@v4
@@ -277,12 +298,6 @@ jobs:
           key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
           restore-keys: |
             venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-
-
-      - name: 🐍 Setup Python Venv + West
-        if: steps.restore-venv.outputs.cache-hit != 'true'
-        run: |
-          python3 -m venv ~/.venv
-          ~/.venv/bin/pip install west ninja
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
