@@ -417,7 +417,7 @@ jobs:
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         run: |
           cd zephyr-workspace
-          sed -i "s|printk[[:space:]]*(FW_STRING);|printk(FW_STRING \" from ${{ github.repository }}\");|g" SlimeVR-Tracker-nRF/src/console.c
+          sed -i "/printk(FW_STRING);/a \tprintk(\"Build from ${{ github.repository }}\");" SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
           mkdir SlimeVR-Tracker-nRF/build
 
