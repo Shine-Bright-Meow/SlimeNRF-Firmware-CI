@@ -308,6 +308,7 @@ jobs:
       - name: 🐍 Install Zephyr Python Requirements
         if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
+          cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 📦 Save Zephyr Python Requirements
