@@ -47,8 +47,6 @@ jobs:
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
-      # West workspace cache is handled in the build job (keyed by resolved SDK SHA).
-
       - name: 📦 Cache Python Venv
         id: cache-venv
         uses: actions/cache@v4
@@ -75,8 +73,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Expand dependency profiles + sources + variant templates into the final GitHub Actions matrix JSON.
-          # Output format must be: {"boards":[...]} to match the downstream usage: matrix.boards.*
           MATRIX_FILE="boards.matrix.json"
           if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/boards.matrix.json" ]; then
             MATRIX_FILE="SlimeNRF-Firmware-CI/boards.matrix.json"
@@ -164,7 +160,6 @@ jobs:
               )}
           ' "$MATRIX_FILE")"
 
-          # Guardrail: GitHub step output has size limits; fail fast if absurdly large.
           echo "Matrix JSON length: ${#MATRIX}"
           if [ ${#MATRIX} -gt 900000 ]; then
             echo "Matrix output too large for GITHUB_OUTPUT (${#MATRIX} bytes)" >&2
@@ -244,7 +239,6 @@ jobs:
           SDK_URL='${{ matrix.boards.sdk_url }}'
           SDK_REV='${{ matrix.boards.sdk_revision }}'
 
-          # Resolve moving refs (main, v3.x-branch, etc.) to a commit SHA.
           SDK_SHA="$(git ls-remote "$SDK_URL" \
             "refs/heads/$SDK_REV" \
             "refs/tags/$SDK_REV" \
@@ -295,7 +289,6 @@ jobs:
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
 
-          # Patch only the SDK in the west manifest (west env should be independent of the firmware repository).
           sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
 
           mkdir -p zephyr-workspace
@@ -404,6 +397,7 @@ jobs:
       - name: 🔨 Stacked Prep
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
         run: |
+          # To Do: Cache Stacked Variant and other Custom boards when they are ready.
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
           sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
@@ -434,8 +428,6 @@ jobs:
               -DNCS_TOOLCHAIN_VERSION=NONE \
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF
 
-          # Note: UF2 builds also produce a .hex, so we always upload the .hex.
-          # If a .uf2 exists, upload it as a separate artifact.
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
           UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
 
