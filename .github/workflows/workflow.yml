@@ -301,9 +301,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
           restore-keys: |
-            venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-
+            venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}
 
       - name: 🐍 Install Zephyr Python Requirements
         if: steps.cache-pip.outputs.cache-hit != 'true'
@@ -316,7 +316,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-zephyr-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
       - name: 📦 Restore Repository
         id: cache-repository
