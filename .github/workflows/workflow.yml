@@ -358,7 +358,7 @@ jobs:
         with:
           path: zephyr-workspace/SlimeNRF-CI
 
-      - name: 🔎 Lookup SDK hash
+      - name: 🔎 Lookup SDK Hash
         id: sdk-hash
         shell: bash
         run: |
