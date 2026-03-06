@@ -168,5 +168,146 @@ jobs:
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
+  resolve-sources:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.hash.outputs.cache_key }}
+    steps:
 
-    
+      - name: 💻 Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: 📄 Install jq
+        run: sudo apt-get install -y jq
+
+      - name: 🔎 Resolve Source Hashes
+        id: resolve-repositories
+        run: |
+          mkdir -p hashes
+          echo "{}" > hashes/sources.json
+          jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' boards.matrix.json \
+          | while read repo rev; do
+            owner_repo=$(echo "$repo" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
+            sha=$(curl -s https://api.github.com/repos/$owner_repo/commits/$rev | jq -r '.sha')
+            key="firmware:${repo}@${rev}"
+            jq --arg k "$key" --arg v "$sha" '. + {($k):$v}' hashes/sources.json > tmp.json
+            mv tmp.json hashes/sources.json
+          done
+
+      - name: 🔎 Resolve Repository Hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p hashes
+          MATRIX_FILE="boards.matrix.json"
+          resolve_sha () {
+            git ls-remote "$1" \
+              "refs/heads/$2" \
+              "refs/tags/$2" \
+              "$2" | head -n1 | awk '{print $1}'
+          }
+          echo "{}" > hashes/sources.json
+
+          # Resolve CI Repository Hash
+          CI_URL="https://github.com/${GITHUB_REPOSITORY}"
+          CI_BRANCH="${GITHUB_REF_NAME}"
+          CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
+          CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
+          jq \
+            --arg url "$CI_URL" \
+            --arg branch "$CI_BRANCH" \
+            --arg sha "$CI_SHA" \
+            --arg short "$CI_SHORT" \
+            '.ci = {
+              repository: $url,
+              branch: $branch,
+              commit: $sha,
+              short_commit: $short,
+              commit_name: $sha
+            }' \
+            hashes/sources.json > hashes/tmp.json
+          mv hashes/tmp.json hashes/sources.json
+
+          # Resolve SDK Hashes
+          jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
+          | sort -u | while read url rev; do
+            sha=$(resolve_sha "$url" "$rev")
+            key="${url}@${rev}"
+            jq \
+              --arg key "$key" \
+              --arg sha "$sha" \
+              '.sdk[$key]=$sha' \
+              hashes/sources.json > hashes/tmp.json
+            mv hashes/tmp.json hashes/sources.json
+          done
+
+          # Resolve Firmware Repository Hashes
+          jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' "$MATRIX_FILE" \
+          | sort -u | while read url rev; do
+            sha=$(resolve_sha "$url" "$rev")
+            key="${url}@${rev}"
+            jq \
+              --arg key "$key" \
+              --arg sha "$sha" \
+              '.firmware[$key]=$sha' \
+              hashes/sources.json > hashes/tmp.json
+            mv hashes/tmp.json hashes/sources.json
+          done
+
+      - name: 📦 Cache Source Hashes
+        uses: actions/cache@v4
+        with:
+          path: hashes/sources.json
+          key: hashes-${{ github.run_id }}
+
+      - name: 💾 Artifact Source Hashes
+        uses: actions/upload-artifact@v5
+        with:
+          name: Source_Hashes
+          path: hashes/sources.json
+
+  build:
+    needs: [setup, resolve-sources]
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: 📦 Restore Hash Cache
+        uses: actions/cache@v4
+        with:
+          path: hashes/sources.json
+          key: hashes-${{ github.run_id }}
+
+      - name: 📟 Restore CI Env Variables
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CI_SHA=$(jq -r '.ci.commit' hashes/sources.json)
+          CI_SHORT=$(jq -r '.ci.short_commit' hashes/sources.json)
+
+          echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
+          echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
+
+      - name: 🔎 Lookup SDK hash
+        id: sdk-hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="${{ matrix.boards.sdk_url }}@${{ matrix.boards.sdk_revision }}"
+          sha=$(jq -r --arg key "$key" '.sdk[$key]' hashes/sources.json)
+          echo "sdk_sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: 🔎 Lookup Firmware Hash
+        id: firmware-hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="${{ matrix.boards.repository_url }}@${{ matrix.boards.repository_revision }}"
+          sha=$(jq -r --arg key "$key" '.firmware[$key]' hashes/sources.json)
+          echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
+
+      
