@@ -274,6 +274,7 @@ jobs:
           done
 
           # Store Daily Tag
+          TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
           mv hashes/tmp.json hashes/sources.json
 
