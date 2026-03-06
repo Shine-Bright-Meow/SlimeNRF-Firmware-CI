@@ -267,7 +267,7 @@ jobs:
           path: hashes/sources.json
 
   build:
-    needs: [setup, resolve-sources]
+    needs: [setup, generate_matrix, resolve-sources]
     continue-on-error: true
     strategy:
       fail-fast: false
