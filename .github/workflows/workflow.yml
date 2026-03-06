@@ -282,7 +282,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: data/lookups.json
-          key: hashes-${{ github.run_id }}
+          key: data-${{ github.run_id }}
 
       - name: 💾 Artifact Source Hashes
         uses: actions/upload-artifact@v5
@@ -315,7 +315,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: data/lookups.json
-          key: hashes-${{ github.run_id }}
+          key: data-${{ github.run_id }}
           fail-on-cache-miss: true
 
       - name: 📟 Restore CI Env Variables
@@ -625,5 +625,5 @@ jobs:
       - name: Delete cache by key
         uses: MySkylight/delete-cache-by-key@v1.0.1
         with:
-          key: hashes-${{ github.run_id }}
+          key: data-${{ github.run_id }}
           mode: exact
