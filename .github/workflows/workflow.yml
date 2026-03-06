@@ -242,7 +242,7 @@ jobs:
             branch: $branch,
             commit: $sha,
             short_commit: $short,
-            message: $message
+            message: $message,
           }'
             hashes/sources.json > hashes/tmp.json
           mv hashes/tmp.json hashes/sources.json
