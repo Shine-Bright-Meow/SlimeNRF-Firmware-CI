@@ -188,7 +188,8 @@ jobs:
 
       - name: 🏷️ Create or Update Tag
         run: |
-          TAG_NAME="${{ steps.daily_tag.outputs.tag_name }}"
+          print(${{ steps.daily-tag.outputs.tag_name }})
+          TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
 
           git config user.name "github-actions"
           git config user.email "actions@github.com"
