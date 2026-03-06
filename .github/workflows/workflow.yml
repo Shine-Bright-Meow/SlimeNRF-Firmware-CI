@@ -336,6 +336,8 @@ jobs:
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
       - name: 📦 Restore Zephyr SDK
         uses: actions/cache/restore@v4
         with:
@@ -603,9 +605,9 @@ jobs:
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
-          tag: "${{ steps.restore-tag.outputs.tag_name }}"
+          tag: "${{ env.TAG_NAME }}"
           prerelease: true
-          name: "${{ steps.restore-tag.outputs.tag_name }}"
+          name: "${{ env.TAG_NAME }}"
           body: |
             Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
