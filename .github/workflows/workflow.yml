@@ -183,15 +183,18 @@ jobs:
       - name: 🏷️ Generate Daily Tag
         id: daily-tag
         run: |
-          TAG="daily-$(date -u +%Y%m%d)"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          TAG_NAME="daily-$(date -u +%Y%m%d)"
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create or Update Tag
         run: |
+          TAG_NAME="${{ steps.daily_tag.outputs.tag_name }}"
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git tag -f "${TAG}"
-          git push -f origin "${TAG}"
+
+          git tag -f "$TAG_NAME"
+          git push -f origin "$TAG_NAME"
 
       - name: 🔎 Resolve Source Hashes
         id: resolve-repositories
@@ -269,7 +272,7 @@ jobs:
           done
 
           # Store Daily Tag
-          jq --arg tag "$TAG" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
           mv hashes/tmp.json hashes/sources.json
 
       - name: 📦 Cache Source Hashes
@@ -323,8 +326,8 @@ jobs:
 
       - name: 🏷️ Restore Tag Name
         run: |
-          TAG=$(jq -r '.tag.name' hashes/sources.json)
-          echo "SNAPSHOT_TAG=$TAG" >> $GITHUB_ENV
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
+          mv hashes/tmp.json hashes/sources.json
 
       - name: 🔎 Lookup SDK hash
         id: sdk-hash
