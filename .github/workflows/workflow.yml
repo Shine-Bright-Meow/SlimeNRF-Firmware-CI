@@ -29,7 +29,7 @@ jobs:
           packages: >-
             git cmake ninja-build gperf dfu-util device-tree-compiler wget
             python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
-            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1 jq
           version: 1.0
 
       - name: 📦 Cache Zephyr SDK
@@ -53,7 +53,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
+          key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -169,7 +169,7 @@ jobs:
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
-  resolve-sources:
+  generate-lookups:
     runs-on: ubuntu-latest
     outputs:
       cache-key: ${{ steps.hash.outputs.cache_key }}
@@ -201,17 +201,17 @@ jobs:
         id: resolve-repositories
         run: |
           mkdir -p hashes
-          echo "{}" > hashes/sources.json
+          echo "{}" > data/lookups.json
           jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' boards.matrix.json \
           | while read repo rev; do
             owner_repo=$(echo "$repo" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
             sha=$(curl -s https://api.github.com/repos/$owner_repo/commits/$rev | jq -r '.sha')
             key="firmware:${repo}@${rev}"
-            jq --arg k "$key" --arg v "$sha" '. + {($k):$v}' hashes/sources.json > tmp.json
-            mv tmp.json hashes/sources.json
+            jq --arg k "$key" --arg v "$sha" '. + {($k):$v}' data/lookups.json > tmp.json
+            mv tmp.json data/lookups.json
           done
 
-      - name: 🔎 Resolve Repository Hashes
+      - name: 🔎 Generate Lookups
         shell: bash
         run: |
           set -euo pipefail
@@ -223,7 +223,7 @@ jobs:
               "refs/tags/$2" \
               "$2" | head -n1 | awk '{print $1}'
           }
-          echo "{}" > hashes/sources.json
+          echo "{}" > data/lookups.json
 
           # Resolve CI Repository Hash
           CI_URL="https://github.com/${GITHUB_REPOSITORY}"
@@ -244,8 +244,8 @@ jobs:
             short_commit: $short,
             message: $message
           }' \
-            hashes/sources.json > hashes/tmp.json
-          mv hashes/tmp.json hashes/sources.json
+            data/lookups.json > hashes/tmp.json
+          mv hashes/tmp.json data/lookups.json
 
           # Resolve SDK Hashes
           jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
@@ -256,8 +256,8 @@ jobs:
               --arg key "$key" \
               --arg sha "$sha" \
               '.sdk[$key]=$sha' \
-              hashes/sources.json > hashes/tmp.json
-            mv hashes/tmp.json hashes/sources.json
+              data/lookups.json > hashes/tmp.json
+            mv hashes/tmp.json data/lookups.json
           done
 
           # Resolve Firmware Repository Hashes
@@ -269,29 +269,29 @@ jobs:
               --arg key "$key" \
               --arg sha "$sha" \
               '.firmware[$key]=$sha' \
-              hashes/sources.json > hashes/tmp.json
-            mv hashes/tmp.json hashes/sources.json
+              data/lookups.json > hashes/tmp.json
+            mv hashes/tmp.json data/lookups.json
           done
 
           # Store Daily Tag
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
-          jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
-          mv hashes/tmp.json hashes/sources.json
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > hashes/tmp.json
+          mv hashes/tmp.json data/lookups.json
 
       - name: 📦 Cache Source Hashes
         uses: actions/cache@v4
         with:
-          path: hashes/sources.json
+          path: data/lookups.json
           key: hashes-${{ github.run_id }}
 
       - name: 💾 Artifact Source Hashes
         uses: actions/upload-artifact@v5
         with:
           name: Source_Hashes
-          path: hashes/sources.json
+          path: data/lookups.json
 
   build:
-    needs: [setup, generate_matrix, resolve-sources]
+    needs: [setup, generate_matrix, generate-lookups]
     continue-on-error: true
     strategy:
       fail-fast: false
@@ -302,10 +302,19 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
+      - name: 🧰 Cache + Install apt Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: >-
+            git cmake ninja-build gperf dfu-util device-tree-compiler wget
+            python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
+            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+          version: 1.0
+
       - name: 📦 Restore Hash Cache
         uses: actions/cache@v4
         with:
-          path: hashes/sources.json
+          path: data/lookups.json
           key: hashes-${{ github.run_id }}
           fail-on-cache-miss: true
 
@@ -314,9 +323,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          CI_SHA=$(jq -r '.ci.commit' hashes/sources.json)
-          CI_SHORT=$(jq -r '.ci.short_commit' hashes/sources.json)
-          CI_MESSAGE=$(jq -r '.ci.message' hashes/sources.json)
+          CI_SHA=$(jq -r '.ci.commit' data/lookups.json)
+          CI_SHORT=$(jq -r '.ci.short_commit' data/lookups.json)
+          CI_MESSAGE=$(jq -r '.ci.message' data/lookups.json)
 
           echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
           echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
@@ -329,8 +338,24 @@ jobs:
 
       - name: 🏷️ Restore Tag Name
         run: |
-          jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
-          mv hashes/tmp.json hashes/sources.json
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > hashes/tmp.json
+          mv hashes/tmp.json data/lookups.json
+
+      - name: 📦 Restore Zephyr SDK
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/zephyr-sdk
+          key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
+          fail-on-cache-miss: true
+
+      - name: 🪁 Register Zephyr SDK
+        run: |
+          ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
+
+      - name: 💻 Checkout CI Manifest Repo (for west init)
+        uses: actions/checkout@v5
+        with:
+          path: zephyr-workspace/SlimeNRF-CI
 
       - name: 🔎 Lookup SDK hash
         id: sdk-hash
@@ -338,8 +363,72 @@ jobs:
         run: |
           set -euo pipefail
           key="${{ matrix.boards.sdk_url }}@${{ matrix.boards.sdk_revision }}"
-          sha=$(jq -r --arg key "$key" '.sdk[$key]' hashes/sources.json)
+          sha=$(jq -r --arg key "$key" '.sdk[$key]' data/lookups.json)
           echo "sdk_sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Cache West Workspace (by SDK SHA)
+        id: cache-west
+        uses: actions/cache@v4
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk-hash.outputs.sdk_sha }}
+
+      - name: 📦 Restore Zephyr Python Requirements
+        id: cache-pip
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          restore-keys: |
+            venv-pip-${{ env.ZEPHYR_SDK_VERSION }}
+
+      - name: 📦 Restore Python Venv
+        id: restore-venv
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.venv
+          key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
+          restore-keys: |
+            venv-${{ env.ZEPHYR_SDK_VERSION }}-
+
+      - name: ♻️ Initialize Zephyr Workspace
+        run: |
+          echo "$HOME/.venv/bin" >> $GITHUB_PATH
+          export PATH="$HOME/.venv/bin:$PATH"
+
+          sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
+
+          mkdir -p zephyr-workspace
+          cd zephyr-workspace
+
+          if [ "${{ steps.cache-west.outputs.cache-hit }}" != "true" ]; then
+            sudo rm -rf .west zephyr nrf modules nrfxlib bootloader tools
+            west init -l SlimeNRF-CI
+            west update --narrow -o=--depth=1
+          fi
+
+          west zephyr-export
+
+      - name: 🐍 Install Zephyr Python Requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        run: |
+          cd zephyr-workspace
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
+
+      - name: 📦 Save Zephyr Python Requirements
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.venv
+          key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
       - name: 🔎 Lookup Firmware Hash
         id: firmware-hash
@@ -347,8 +436,187 @@ jobs:
         run: |
           set -euo pipefail
           key="${{ matrix.boards.repository_url }}@${{ matrix.boards.repository_revision }}"
-          sha=$(jq -r --arg key "$key" '.firmware[$key]' hashes/sources.json)
+          sha=$(jq -r --arg key "$key" '.firmware[$key]' data/lookups.json)
           echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Restore Repository
+        id: cache-repository
+        uses: actions/cache/restore@v4
+        with:
+          path: zephyr-workspace/SlimeVR-Tracker-nRF
+          key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
+
+      - name: 💻 Clone Repository
+        if: steps.cache-repository.outputs.cache-hit != 'true'
+        run: |
+          cd zephyr-workspace
+          rm -rf SlimeVR-Tracker-nRF
+          git clone --filter=blob:none --no-checkout "${{ matrix.boards.repository_url }}" SlimeVR-Tracker-nRF
+          git -C SlimeVR-Tracker-nRF checkout ${{ steps.firmware-hash.outputs.firmware_sha }}
+          git -C SlimeVR-Tracker-nRF submodule update --init --recursive --depth 1
+
+      - name: 📦 Save Repository Cache
+        if: steps.cache-repository.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: zephyr-workspace/SlimeVR-Tracker-nRF
+          key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
+
+      - name: 🔧 Preparing Build Environment
+        run: |
+          cd zephyr-workspace
+          sudo rm -rf Releases
+          mkdir Releases
+
+      - name: 🔧 Configure Tracker Options
+        if: ${{ matrix.boards.type == 'tracker' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd zephyr-workspace
+
+          CLK='${{ matrix.boards.clk }}'
+          EXTRA='${{ matrix.boards.extraaction }}'
+          MAG='${{ matrix.boards.magnetometer }}'
+          SLEEP='${{ matrix.boards.sleep }}'
+          SW0='${{ matrix.boards.sw0 }}'
+
+          append_conf() { printf "\n\n%s" "$1" >> SlimeVR-Tracker-nRF/prj.conf; }
+
+          if [ "$CLK" = "disabled" ]; then
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|clk-gpios[[:space:]]*=|// clk-gpios =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+            append_conf 'CONFIG_USE_SENSOR_CLOCK=n'
+          elif [ "$CLK" = "enabled" ]; then
+            sed -i 's|//[[:space:]]*clk-gpios|clk-gpios|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|//[[:space:]]*clk-gpios|clk-gpios|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            append_conf 'CONFIG_USE_SENSOR_CLOCK=y'
+          fi
+
+          if [ "$EXTRA" = "disabled" ]; then
+            append_conf 'CONFIG_USER_EXTRA_ACTIONS=n'
+          elif [ "$EXTRA" = "enabled" ]; then
+            append_conf 'CONFIG_USER_EXTRA_ACTIONS=y'
+          fi
+
+          if [ "$MAG" = "disabled" ]; then
+            append_conf 'CONFIG_SENSOR_USE_MAG=n'
+          elif [ "$MAG" = "enabled" ]; then
+            append_conf 'CONFIG_SENSOR_USE_MAG=y'
+          fi
+
+          if [ "$SLEEP" = "disabled" ]; then
+            append_conf 'CONFIG_USE_IMU_WAKE_UP=n'
+            append_conf 'CONFIG_USE_ACTIVE_TIMEOUT=n'
+            append_conf 'CONFIG_SENSOR_LP_TIMEOUT=300000'
+            append_conf 'CONFIG_SENSOR_USE_LOW_POWER_2=n'
+          elif [ "$SLEEP" = "enabled" ]; then
+            append_conf 'CONFIG_USE_IMU_WAKE_UP=y'
+            append_conf 'CONFIG_USE_ACTIVE_TIMEOUT=y'
+          fi
+
+          if [ "$SW0" = "disabled" ]; then
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|sw0[[:space:]]*=|// sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          elif [ "$SW0" = "enabled" ]; then
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2.dts
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble.overlay
+            sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
+          fi
+
+      - name: 🔨 Stacked Prep
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        run: |
+          # To Do: Cache Stacked Variant and other Custom boards when they are ready.
+          cd zephyr-workspace
+          printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
+          sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedi2c.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedspi.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedi2c.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedspi.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.yml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
+          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+
+      - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
+        run: |
+          cd zephyr-workspace
+          sed -i '/printk(FW_STRING);/a printk(\"Build from '${{ github.repository }}'\\n\");' SlimeVR-Tracker-nRF/src/console.c
+          sudo rm -rf SlimeVR-Tracker-nRF/build
+          mkdir SlimeVR-Tracker-nRF/build
+
+          west build \
+              --board ${{ matrix.boards.boardname }} \
+              --pristine=always SlimeVR-Tracker-nRF \
+              --build-dir SlimeVR-Tracker-nRF/build \
+              -- \
+              -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DBOARD_ROOT=../SlimeVR-Tracker-nRF
+
+          HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
+          UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
+
+          if [ -f "$HEX_SRC" ]; then
+            mv "$HEX_SRC" "Releases/${{ matrix.boards.filename }}.hex"
+          else
+            echo "Missing expected HEX output: $HEX_SRC" >&2
+            exit 1
+          fi
+
+          if [ -f "$UF2_SRC" ]; then
+            mv "$UF2_SRC" "Releases/${{ matrix.boards.filename }}.uf2"
+          fi
+
+      - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.boards.filename }}.hex
+          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+
+      - name: 💾 Upload Artifact (UF2) - ${{ matrix.boards.boardname }}
+        if: ${{ hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.boards.filename }}.uf2
+          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
+
+      - name: 📁 Create/Update Github Latest Release
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        uses: mini-bomba/create-github-release@v1.2.0
+        with:
+          token: ${{ secrets.gh_token }}
+          tag: "latest"
+          prerelease: false
+          name: "Latest Firmware"
+          body: |
+            Latest successful SlimeNRF Firmware build. (Automated)
+          files: |
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
+          clear_attachments: false
+
+      - name: 📁 Create/Update Github Daily Release
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        uses: mini-bomba/create-github-release@v1.2.0
+        with:
+          token: ${{ secrets.gh_token }}
+          tag: "${{ env.TAG_NAME }}"
+          prerelease: true
+          name: "${{ env.TAG_NAME }}"
+          body: |
+            Archive of successful daily SlimeNRF Firmware build. (Automated)
+          files: |
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
+          clear_attachments: false
 
   delete-cache:
     runs-on: ubuntu-latest
