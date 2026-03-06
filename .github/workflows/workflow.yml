@@ -618,13 +618,3 @@ jobs:
             zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
             zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
           clear_attachments: false
-
-  delete-cache:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - name: Delete cache by key
-        uses: MySkylight/delete-cache-by-key@v1.0.1
-        with:
-          key: data-${{ github.run_id }}
-          mode: exact
