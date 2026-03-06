@@ -337,6 +337,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: 🏷️ Restore Tag Name
+        id: restore-tag
         run: |
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
@@ -608,9 +609,9 @@ jobs:
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
-          tag: "${{ env.TAG_NAME }}"
+          tag: "${{ steps.restore-tag.outputs.tag_name }}"
           prerelease: true
-          name: "${{ env.TAG_NAME }}"
+          name: "${{ steps.restore-tag.outputs.tag_name }}"
           body: |
             Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
