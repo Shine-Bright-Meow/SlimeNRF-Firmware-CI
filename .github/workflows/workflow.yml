@@ -169,7 +169,7 @@ jobs:
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
-  generate-lookups:
+  generate_lookups:
     runs-on: ubuntu-latest
     outputs:
       cache-key: ${{ steps.hash.outputs.cache_key }}
@@ -291,7 +291,7 @@ jobs:
           path: data/lookups.json
 
   build:
-    needs: [setup, generate_matrix, generate-lookups]
+    needs: [setup, generate_matrix, generate_lookups]
     continue-on-error: true
     strategy:
       fail-fast: false
