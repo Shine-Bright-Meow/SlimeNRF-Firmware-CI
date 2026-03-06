@@ -284,12 +284,6 @@ jobs:
           path: data/lookups.json
           key: data-${{ github.run_id }}
 
-      - name: 💾 Artifact Source Hashes
-        uses: actions/upload-artifact@v5
-        with:
-          name: Source_Hashes
-          path: data/lookups.json
-
   build:
     needs: [setup, generate_matrix, generate_lookups]
     continue-on-error: true
