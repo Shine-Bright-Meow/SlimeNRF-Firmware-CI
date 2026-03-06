@@ -244,8 +244,8 @@ jobs:
             short_commit: $short,
             message: $message
           }' \
-            data/lookups.json > hashes/tmp.json
-          mv hashes/tmp.json data/lookups.json
+            data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
 
           # Resolve SDK Hashes
           jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
@@ -256,8 +256,8 @@ jobs:
               --arg key "$key" \
               --arg sha "$sha" \
               '.sdk[$key]=$sha' \
-              data/lookups.json > hashes/tmp.json
-            mv hashes/tmp.json data/lookups.json
+              data/lookups.json > data/tmp.json
+            mv data/tmp.json data/lookups.json
           done
 
           # Resolve Firmware Repository Hashes
@@ -269,14 +269,14 @@ jobs:
               --arg key "$key" \
               --arg sha "$sha" \
               '.firmware[$key]=$sha' \
-              data/lookups.json > hashes/tmp.json
-            mv hashes/tmp.json data/lookups.json
+              data/lookups.json > data/tmp.json
+            mv data/tmp.json data/lookups.json
           done
 
           # Store Daily Tag
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
-          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > hashes/tmp.json
-          mv hashes/tmp.json data/lookups.json
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
 
       - name: 📦 Cache Source Hashes
         uses: actions/cache@v4
@@ -338,8 +338,8 @@ jobs:
 
       - name: 🏷️ Restore Tag Name
         run: |
-          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > hashes/tmp.json
-          mv hashes/tmp.json data/lookups.json
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
 
       - name: 📦 Restore Zephyr SDK
         uses: actions/cache/restore@v4
