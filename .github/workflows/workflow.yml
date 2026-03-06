@@ -180,6 +180,19 @@ jobs:
       - name: 📄 Install jq
         run: sudo apt-get install -y jq
 
+      - name: 🏷️ Generate Daily Tag
+        id: daily-tag
+        run: |
+          TAG="daily-$(date -u +%Y%m%d)"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Create or Update Tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -f "${TAG}"
+          git push -f origin "${TAG}"
+
       - name: 🔎 Resolve Source Hashes
         id: resolve-repositories
         run: |
@@ -214,17 +227,18 @@ jobs:
           CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
           CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
           jq \
-            --arg url "$CI_URL" \
-            --arg branch "$CI_BRANCH" \
-            --arg sha "$CI_SHA" \
-            --arg short "$CI_SHORT" \
-            '.ci = {
-              repository: $url,
-              branch: $branch,
-              commit: $sha,
-              short_commit: $short,
-              commit_name: $sha
-            }' \
+          --arg url "$CI_URL" \
+          --arg branch "$CI_BRANCH" \
+          --arg sha "$CI_SHA" \
+          --arg short "$CI_SHORT" \
+          --arg message "$CI_MESSAGE" \
+          '.ci = {
+            repository: $url,
+            branch: $branch,
+            commit: $sha,
+            short_commit: $short,
+            message: $message
+          }'
             hashes/sources.json > hashes/tmp.json
           mv hashes/tmp.json hashes/sources.json
 
@@ -254,6 +268,10 @@ jobs:
             mv hashes/tmp.json hashes/sources.json
           done
 
+          # Store Daily Tag
+          jq --arg tag "$TAG" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
+          mv hashes/tmp.json hashes/sources.json
+
       - name: 📦 Cache Source Hashes
         uses: actions/cache@v4
         with:
@@ -275,11 +293,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: 💻 Checkout Repository
+        uses: actions/checkout@v5
+
       - name: 📦 Restore Hash Cache
         uses: actions/cache@v4
         with:
           path: hashes/sources.json
           key: hashes-${{ github.run_id }}
+          fail-on-cache-miss: true
 
       - name: 📟 Restore CI Env Variables
         shell: bash
@@ -288,9 +310,21 @@ jobs:
 
           CI_SHA=$(jq -r '.ci.commit' hashes/sources.json)
           CI_SHORT=$(jq -r '.ci.short_commit' hashes/sources.json)
+          CI_MESSAGE=$(jq -r '.ci.message' hashes/sources.json)
 
           echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
           echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
+
+          echo "GIT_HASH=$CI_SHORT" >> $GITHUB_ENV
+
+          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "$CI_MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🏷️ Restore Tag Name
+        run: |
+          TAG=$(jq -r '.tag.name' hashes/sources.json)
+          echo "SNAPSHOT_TAG=$TAG" >> $GITHUB_ENV
 
       - name: 🔎 Lookup SDK hash
         id: sdk-hash
