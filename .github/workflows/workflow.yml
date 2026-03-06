@@ -311,7 +311,7 @@ jobs:
             xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
           version: 1.0
 
-      - name: 📦 Restore Hash Cache
+      - name: 📦 Restore Data Cache
         uses: actions/cache@v4
         with:
           path: data/lookups.json
