@@ -200,7 +200,7 @@ jobs:
       - name: 🔎 Resolve Source Hashes
         id: resolve-repositories
         run: |
-          mkdir -p hashes
+          mkdir -p data
           echo "{}" > data/lookups.json
           jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' boards.matrix.json \
           | while read repo rev; do
