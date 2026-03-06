@@ -225,8 +225,6 @@ jobs:
           }
           echo "{}" > hashes/sources.json
 
-          sleep 1
-
           # Resolve CI Repository Hash
           CI_URL="https://github.com/${GITHUB_REPOSITORY}"
           CI_BRANCH="${GITHUB_REF_NAME}"
@@ -245,11 +243,9 @@ jobs:
             commit: $sha,
             short_commit: $short,
             message: $message
-          }'
+          }' \
             hashes/sources.json > hashes/tmp.json
           mv hashes/tmp.json hashes/sources.json
-
-          sleep 1
 
           # Resolve SDK Hashes
           jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
@@ -264,8 +260,6 @@ jobs:
             mv hashes/tmp.json hashes/sources.json
           done
 
-          sleep 1
-
           # Resolve Firmware Repository Hashes
           jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' "$MATRIX_FILE" \
           | sort -u | while read url rev; do
@@ -278,8 +272,6 @@ jobs:
               hashes/sources.json > hashes/tmp.json
             mv hashes/tmp.json hashes/sources.json
           done
-
-          sleep 1
 
           # Store Daily Tag
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' hashes/sources.json > hashes/tmp.json
