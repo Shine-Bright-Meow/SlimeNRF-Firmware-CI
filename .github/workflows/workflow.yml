@@ -349,4 +349,12 @@ jobs:
           sha=$(jq -r --arg key "$key" '.firmware[$key]' hashes/sources.json)
           echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
 
-      
+  delete-cache:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Delete cache by key
+        uses: MySkylight/delete-cache-by-key@v2
+        with:
+          key: hashes-${{ github.run_id }}
+          mode: exact
