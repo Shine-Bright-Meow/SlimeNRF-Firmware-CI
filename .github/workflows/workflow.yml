@@ -19,6 +19,7 @@ env:
   ZEPHYR_SDK_VERSION: "0.17.4"
 
 jobs:
+
   setup:
     runs-on: ubuntu-latest
     steps:
@@ -28,7 +29,7 @@ jobs:
           packages: >-
             git cmake ninja-build gperf dfu-util device-tree-compiler wget
             python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
-            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+            xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1 jq
           version: 1.0
 
       - name: 📦 Cache Zephyr SDK
@@ -52,7 +53,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.venv
-          key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
+          key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
 
       - name: 🐍 Setup Python Venv + West
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -168,8 +169,129 @@ jobs:
 
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
+  generate_lookups:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.hash.outputs.cache_key }}
+    steps:
+
+      - name: 💻 Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: 📄 Install jq
+        run: sudo apt-get install -y jq
+
+      - name: 🏷️ Generate Daily Tag
+        id: daily-tag
+        run: |
+          TAG_NAME="daily-$(date -u +%Y%m%d)"
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: 🏷️ Create or Update Tag
+        run: |
+          TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
+
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git tag -f "$TAG_NAME"
+          git push -f origin "$TAG_NAME"
+
+      - name: 🔎 Resolve Source Hashes
+        id: resolve-repositories
+        run: |
+          mkdir -p data
+          echo "{}" > data/lookups.json
+          jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' boards.matrix.json \
+          | while read repo rev; do
+            owner_repo=$(echo "$repo" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
+            sha=$(curl -s https://api.github.com/repos/$owner_repo/commits/$rev | jq -r '.sha')
+            key="firmware:${repo}@${rev}"
+            jq --arg k "$key" --arg v "$sha" '. + {($k):$v}' data/lookups.json > tmp.json
+            mv tmp.json data/lookups.json
+          done
+
+      - name: 🔎 Generate Lookups
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p hashes
+          MATRIX_FILE="boards.matrix.json"
+          resolve_sha () {
+            git ls-remote "$1" \
+              "refs/heads/$2" \
+              "refs/tags/$2" \
+              "$2" | head -n1 | awk '{print $1}'
+          }
+          echo "{}" > data/lookups.json
+
+          # Resolve CI Repository Hash
+          CI_URL="https://github.com/${GITHUB_REPOSITORY}"
+          CI_BRANCH="${GITHUB_REF_NAME}"
+          CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
+          CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
+          CI_MESSAGE=$(git log -1 --pretty=%B)
+          jq \
+          --arg url "$CI_URL" \
+          --arg branch "$CI_BRANCH" \
+          --arg sha "$CI_SHA" \
+          --arg short "$CI_SHORT" \
+          --arg message "$CI_MESSAGE" \
+          '.ci = {
+            repository: $url,
+            branch: $branch,
+            commit: $sha,
+            short_commit: $short,
+            message: $message
+          }' \
+            data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
+
+          # Resolve SDK Hashes
+          jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
+          | sort -u | while read url rev; do
+            sha=$(resolve_sha "$url" "$rev")
+            key="${url}@${rev}"
+            jq \
+              --arg key "$key" \
+              --arg sha "$sha" \
+              '.sdk[$key]=$sha' \
+              data/lookups.json > data/tmp.json
+            mv data/tmp.json data/lookups.json
+          done
+
+          # Resolve Firmware Repository Hashes
+          jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' "$MATRIX_FILE" \
+          | sort -u | while read url rev; do
+            sha=$(resolve_sha "$url" "$rev")
+            key="${url}@${rev}"
+            jq \
+              --arg key "$key" \
+              --arg sha "$sha" \
+              '.firmware[$key]=$sha' \
+              data/lookups.json > data/tmp.json
+            mv data/tmp.json data/lookups.json
+          done
+
+          # Store Daily Tag
+          TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
+
+      - name: 📦 Cache Source Hashes
+        uses: actions/cache@v4
+        with:
+          path: data/lookups.json
+          key: data-${{ github.run_id }}
+
+      - name: 💾 Artifact Source Hashes
+        uses: actions/upload-artifact@v5
+        with:
+          name: Source_Hashes
+          path: data/lookups.json
+
   build:
-    needs: [setup, generate_matrix]
+    needs: [setup, generate_matrix, generate_lookups]
     continue-on-error: true
     strategy:
       fail-fast: false
@@ -180,26 +302,6 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
-      - name: 📝 Put Commit Hash/Name in Env Variables
-        run: |
-          echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
-          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
-          git log -1 --pretty=%B >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: 🏷️ Generate Tag
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        run: |
-          echo "TAG_NAME=daily-$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: 🏷️ Create or Update Tag
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git tag -f "${TAG_NAME}"
-          git push -f origin "${TAG_NAME}"
-
       - name: 🧰 Cache + Install apt Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -208,6 +310,37 @@ jobs:
             python3-dev python3-pip python3-setuptools python3-tk python3-wheel python3-venv
             xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
           version: 1.0
+
+      - name: 📦 Restore Data Cache
+        uses: actions/cache@v4
+        with:
+          path: data/lookups.json
+          key: data-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: 📟 Restore CI Env Variables
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CI_SHA=$(jq -r '.ci.commit' data/lookups.json)
+          CI_SHORT=$(jq -r '.ci.short_commit' data/lookups.json)
+          CI_MESSAGE=$(jq -r '.ci.message' data/lookups.json)
+
+          echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
+          echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
+
+          echo "GIT_HASH=$CI_SHORT" >> $GITHUB_ENV
+
+          echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "$CI_MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: 🏷️ Restore Tag Name
+        id: restore-tag
+        run: |
+          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
 
       - name: 📦 Restore Zephyr SDK
         uses: actions/cache/restore@v4
@@ -225,29 +358,14 @@ jobs:
         with:
           path: zephyr-workspace/SlimeNRF-CI
 
-      - name: 🔎 Resolve NCS (sdk-nrf) SHA for West Workspace Cache Key
-        id: sdk_sha
+      - name: 🔎 Lookup SDK hash
+        id: sdk-hash
         shell: bash
         run: |
           set -euo pipefail
-          SDK_URL='${{ matrix.boards.sdk_url }}'
-          SDK_REV='${{ matrix.boards.sdk_revision }}'
-
-          SDK_SHA="$(git ls-remote "$SDK_URL" \
-            "refs/heads/$SDK_REV" \
-            "refs/tags/$SDK_REV" \
-            "$SDK_REV" \
-            | head -n 1 | awk '{print $1}')"
-
-          if [ -z "$SDK_SHA" ]; then
-            echo "Failed to resolve SDK SHA for $SDK_URL @ $SDK_REV" >&2
-            exit 1
-          fi
-
-          SDK_URL_HASH="$(printf %s "$SDK_URL" | sha256sum | cut -c1-12)"
-
-          echo "sdk_sha=$SDK_SHA" >> "$GITHUB_OUTPUT"
-          echo "sdk_url_hash=$SDK_URL_HASH" >> "$GITHUB_OUTPUT"
+          key="${{ matrix.boards.sdk_url }}@${{ matrix.boards.sdk_revision }}"
+          sha=$(jq -r --arg key "$key" '.sdk[$key]' data/lookups.json)
+          echo "sdk_sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Cache West Workspace (by SDK SHA)
         id: cache-west
@@ -261,16 +379,16 @@ jobs:
             zephyr-workspace/nrfxlib
             zephyr-workspace/bootloader
             zephyr-workspace/tools
-          key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk_sha.outputs.sdk_url_hash }}-${{ steps.sdk_sha.outputs.sdk_sha }}
+          key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk-hash.outputs.sdk_sha }}
 
       - name: 📦 Restore Zephyr Python Requirements
         id: cache-pip
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
           restore-keys: |
-            venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}
+            venv-pip-${{ env.ZEPHYR_SDK_VERSION }}
 
       - name: 📦 Restore Python Venv
         id: restore-venv
@@ -278,9 +396,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
-          key: venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-base
+          key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
           restore-keys: |
-            venv-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-
+            venv-${{ env.ZEPHYR_SDK_VERSION }}-
 
       - name: ♻️ Initialize Zephyr Workspace
         run: |
@@ -299,7 +417,7 @@ jobs:
           fi
 
           west zephyr-export
-          
+
       - name: 🐍 Install Zephyr Python Requirements
         if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
@@ -311,20 +429,23 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.venv
-          key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
 
-      - name: 🔎 Resolve Remote Repository Commit Hash
-        id: resolve-commit
+      - name: 🔎 Lookup Firmware Hash
+        id: firmware-hash
+        shell: bash
         run: |
-          COMMIT=$(git ls-remote "${{ matrix.boards.repository_url }}" "${{ matrix.boards.repository_revision }}" | cut -f1)
-          echo "COMMIT=$COMMIT" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          key="${{ matrix.boards.repository_url }}@${{ matrix.boards.repository_revision }}"
+          sha=$(jq -r --arg key "$key" '.firmware[$key]' data/lookups.json)
+          echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Repository
         id: cache-repository
         uses: actions/cache/restore@v4
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
-          key: firmware-${{ steps.resolve-commit.outputs.COMMIT }}
+          key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
       - name: 💻 Clone Repository
         if: steps.cache-repository.outputs.cache-hit != 'true'
@@ -332,7 +453,7 @@ jobs:
           cd zephyr-workspace
           rm -rf SlimeVR-Tracker-nRF
           git clone --filter=blob:none --no-checkout "${{ matrix.boards.repository_url }}" SlimeVR-Tracker-nRF
-          git -C SlimeVR-Tracker-nRF checkout ${{ steps.resolve-commit.outputs.COMMIT }}
+          git -C SlimeVR-Tracker-nRF checkout ${{ steps.firmware-hash.outputs.firmware_sha }}
           git -C SlimeVR-Tracker-nRF submodule update --init --recursive --depth 1
 
       - name: 📦 Save Repository Cache
@@ -340,7 +461,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
-          key: firmware-${{ steps.resolve-commit.outputs.COMMIT }}
+          key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
       - name: 🔧 Preparing Build Environment
         run: |
@@ -488,9 +609,9 @@ jobs:
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
-          tag: "${{ env.TAG_NAME }}"
+          tag: "${{ steps.restore-tag.outputs.tag_name }}"
           prerelease: true
-          name: "${{ env.TAG_NAME }}"
+          name: "${{ steps.restore-tag.outputs.tag_name }}"
           body: |
             Archive of successful daily SlimeNRF Firmware build. (Automated)
           files: |
