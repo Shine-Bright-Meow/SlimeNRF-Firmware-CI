@@ -180,12 +180,6 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
-      - name: 🔎 Resolve Remote Commit
-        id: resolve-commit
-        run: |
-          COMMIT=$(git ls-remote "${{ matrix.boards.repository_url }}" "${{ matrix.boards.repository_revision }}" | cut -f1)
-          echo "COMMIT=$COMMIT" >> $GITHUB_OUTPUT
-
       - name: 📝 Put Commit Hash/Name in Env Variables
         run: |
           echo "GIT_HASH=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
@@ -318,6 +312,12 @@ jobs:
         with:
           path: ~/.venv
           key: venv-pip-${{ runner.os }}-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+
+      - name: 🔎 Resolve Remote Repository Commit Hash
+        id: resolve-commit
+        run: |
+          COMMIT=$(git ls-remote "${{ matrix.boards.repository_url }}" "${{ matrix.boards.repository_revision }}" | cut -f1)
+          echo "COMMIT=$COMMIT" >> $GITHUB_OUTPUT
 
       - name: 📦 Restore Repository
         id: cache-repository
