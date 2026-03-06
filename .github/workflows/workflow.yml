@@ -19,6 +19,7 @@ env:
   ZEPHYR_SDK_VERSION: "0.17.4"
 
 jobs:
+
   setup:
     runs-on: ubuntu-latest
     steps:
@@ -229,6 +230,7 @@ jobs:
           CI_BRANCH="${GITHUB_REF_NAME}"
           CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
           CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
+          CI_MESSAGE=$(git log -1 --pretty=%B)
           jq \
           --arg url "$CI_URL" \
           --arg branch "$CI_BRANCH" \
