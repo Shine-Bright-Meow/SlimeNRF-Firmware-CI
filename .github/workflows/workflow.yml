@@ -325,9 +325,7 @@ jobs:
       - name: 🏷️ Restore Tag Name
         id: restore-tag
         run: |
-          jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
-          mv data/tmp.json data/lookups.json
-
+          TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
       - name: 📦 Restore Zephyr SDK
