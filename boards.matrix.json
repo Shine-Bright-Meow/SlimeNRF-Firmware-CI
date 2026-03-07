@@ -28,6 +28,10 @@
     "sdk_v3_1_1": {
       "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
       "sdk_revision": "v3.1.1"
+    },
+    "sdk_v3_2_0": {
+      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
+      "sdk_revision": "v3.2.0"
     }
   },
   "variants": [
@@ -51,19 +55,19 @@
     },
     {
       "boardname": "butterfly_p1_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P1_Receiver"
     },
     {
       "boardname": "butterfly_p2_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P2_Receiver"
     },
     {
       "boardname": "butterfly_p3/nrf52820",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P3_Receiver"
     },
@@ -1022,6 +1026,11 @@
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "dev",
       "profile": "sdk_v3_1_1"
+    },
+    "slimevr_tracker_nrf_receiver_main": {
+      "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_2_0"
     },
     "slimevr_tracker_nrf_main": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
