@@ -24,7 +24,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - name: 🧰 Cache + Install apt Dependencies
+      - name: 🧰 Cache + Install Apt Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: >-
@@ -288,7 +288,7 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
-      - name: 🧰 Cache + Install apt Dependencies
+      - name: 🧰 Cache + Install Apt Dependencies
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: >-
