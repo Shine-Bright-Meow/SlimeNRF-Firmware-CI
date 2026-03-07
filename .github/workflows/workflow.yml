@@ -564,7 +564,7 @@ jobs:
           fi
 
       - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
-        if: steps.build-firmware.outcome == 'success'
+        if: ${{ steps.build-firmware.outcome == 'success' }}
         uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.boards.filename }}.hex
