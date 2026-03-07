@@ -17,6 +17,7 @@ permissions: write-all
 
 env:
   ZEPHYR_SDK_VERSION: "0.17.4"
+  BOARD_MATRIX_FILE: "boards.matrix.json"
 
 jobs:
 
@@ -74,9 +75,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          MATRIX_FILE="boards.matrix.json"
-          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/boards.matrix.json" ]; then
-            MATRIX_FILE="SlimeNRF-Firmware-CI/boards.matrix.json"
+          MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
+          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/$MATRIX_FILE" ]; then
+            MATRIX_FILE="SlimeNRF-Firmware-CI/$MATRIX_FILE"
           fi
 
           MATRIX="$(jq -c '
@@ -202,7 +203,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p hashes
-          MATRIX_FILE="boards.matrix.json"
+          MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
+
+          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/$MATRIX_FILE" ]; then
+            MATRIX_FILE="SlimeNRF-Firmware-CI/$MATRIX_FILE"
+          fi
+
           resolve_sha () {
             git ls-remote "$1" \
               "refs/heads/$2" \
