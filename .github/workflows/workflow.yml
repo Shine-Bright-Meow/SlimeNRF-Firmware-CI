@@ -202,7 +202,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p hashes
+          mkdir -p data
           MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
 
           if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/$MATRIX_FILE" ]; then
