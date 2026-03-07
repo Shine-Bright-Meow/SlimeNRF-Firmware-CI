@@ -70,7 +70,7 @@ jobs:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
 
-      - name: 🧮 Generate build matrix from JSON
+      - name: 🧮 Generate Build Matrix from JSON
         id: gen
         run: |
           set -euo pipefail
@@ -270,7 +270,7 @@ jobs:
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
-      - name: 📦 Cache Source Hashes
+      - name: 📦 Cache Lookups
         uses: actions/cache@v4
         with:
           path: data/lookups.json
@@ -297,7 +297,7 @@ jobs:
             xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
           version: 1.0
 
-      - name: 📦 Restore Data Cache
+      - name: 📦 Restore Lookups Cache
         uses: actions/cache@v4
         with:
           path: data/lookups.json
@@ -534,6 +534,7 @@ jobs:
           curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
+        id: build-firmware
         run: |
           cd zephyr-workspace
           sed -i '/printk(FW_STRING);/a printk(\"Build from '${{ github.repository }}'\\n\");' SlimeVR-Tracker-nRF/src/console.c
@@ -563,20 +564,21 @@ jobs:
           fi
 
       - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
+        if: steps.build-firmware.outcome == 'success'
         uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.boards.filename }}.hex
           path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
 
       - name: 💾 Upload Artifact (UF2) - ${{ matrix.boards.boardname }}
-        if: ${{ hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
+        if: ${{ steps.build-firmware.outcome == 'success' && hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
         uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.boards.filename }}.uf2
           path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
 
       - name: 📁 Create/Update Github Latest Release
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
@@ -591,7 +593,7 @@ jobs:
           clear_attachments: false
 
       - name: 📁 Create/Update Github Daily Release
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
         uses: mini-bomba/create-github-release@v1.2.0
         with:
           token: ${{ secrets.gh_token }}
