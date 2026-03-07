@@ -197,20 +197,6 @@ jobs:
           git tag -f "$TAG_NAME"
           git push -f origin "$TAG_NAME"
 
-      - name: 🔎 Resolve Source Hashes
-        id: resolve-repositories
-        run: |
-          mkdir -p data
-          echo "{}" > data/lookups.json
-          jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' boards.matrix.json \
-          | while read repo rev; do
-            owner_repo=$(echo "$repo" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
-            sha=$(curl -s https://api.github.com/repos/$owner_repo/commits/$rev | jq -r '.sha')
-            key="firmware:${repo}@${rev}"
-            jq --arg k "$key" --arg v "$sha" '. + {($k):$v}' data/lookups.json > tmp.json
-            mv tmp.json data/lookups.json
-          done
-
       - name: 🔎 Generate Lookups
         shell: bash
         run: |
