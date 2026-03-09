@@ -686,22 +686,23 @@ jobs:
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
           run: |
-            gh release upload "latest" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --title "Latest Firmware" \
-              --notes "Latest successful SlimeNRF Firmware build. (Automated)" \
-              --prerelease=false \
-              --dir "Releases" \
-              --clobber
+            FILES=$(find Releases -type f)
+            gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
 
         - name: 📁 Upload Daily Release
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
           run: |
-            gh release upload "${{ env.TAG_NAME }}" \
-              --repo "${GITHUB_REPOSITORY}" \
-              --title "${{ env.TAG_NAME }}" \
-              --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
-              --prerelease=true \
-              --dir "Releases" \
-              --clobber
+            FILES=$(find Releases -type f)
+            if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+              echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
+              gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
+            else
+              echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
+              gh release create "${{ env.TAG_NAME }}" $FILES \
+                --repo "${GITHUB_REPOSITORY}" \
+                --title "${{ env.TAG_NAME }}" \
+                --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
+                --prerelease \
+                --target main
+            fi
