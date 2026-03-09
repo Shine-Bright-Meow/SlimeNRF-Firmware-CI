@@ -467,7 +467,7 @@ jobs:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
-      - name: 💻 Clone Repository
+      - name: 📥 Clone Repository
         if: steps.cache-repository.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
@@ -563,7 +563,7 @@ jobs:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
 
-      - name: 💻 Clone Custom Boards Repository
+      - name: 📥 Clone Custom Boards Repository
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
         run: |
           # To Do: This is a placeholder for Stacked variant and custom board files.
