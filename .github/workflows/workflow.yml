@@ -563,12 +563,11 @@ jobs:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
 
-      - name: 🔨 Stacked Prep
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+      - name: 💻 Clone Custom Boards Repository
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
         run: |
-          # To Do: Cache Stacked Variant and other Custom boards when they are ready.
+          # To Do: This is a placeholder for Stacked variant and custom board files.
           cd zephyr-workspace
-          printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
           sudo rm -rf custom
           git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
 
@@ -582,7 +581,16 @@ jobs:
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         id: build-firmware
         run: |
+          FILENAME="${{ matrix.boards.filename }}"
+
           cd zephyr-workspace
+
+          shopt -s nocasematch
+          if [[ "$FILENAME" == *stacked* ]]; then
+            printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
+          fi
+          shopt -u nocasematch
+
           sed -i '/printk(FW_STRING);/a printk(\"Build from '${{ github.repository }}'\\n\");' SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
           mkdir SlimeVR-Tracker-nRF/build
