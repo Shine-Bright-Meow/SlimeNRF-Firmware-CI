@@ -678,11 +678,6 @@ jobs:
             name: firmware-uf2
             path: Releases/*.uf2
 
-        - name: 🔧 Setup GitHub CLI
-          uses: wusatosi/setup-gh@v1.1
-          with:
-            version: latest
-
         - name: 🔑 Authenticate GitHub CLI
           run: |
             gh auth login --with-token <<< "${{ secrets.gh_token }}"
