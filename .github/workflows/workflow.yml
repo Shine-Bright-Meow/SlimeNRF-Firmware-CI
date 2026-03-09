@@ -683,7 +683,7 @@ jobs:
             files: |
               Releases/*.hex
               Releases/*.uf2
-            clear_attachments: true
+            clear_attachments: false
 
         - name: 📁 Create/Update Github Daily Release
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
