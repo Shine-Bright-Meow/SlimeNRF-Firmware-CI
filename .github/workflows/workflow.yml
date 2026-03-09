@@ -596,7 +596,14 @@ jobs:
             mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      
+      - name: 💾 Upload Firmware Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.index }}
+          path: |
+            zephyr-workspace/Releases-${{ matrix.index }}/*.uf2
+            zephyr-workspace/Releases-${{ matrix.index }}/*.hex
+          retention-days: 1
 
   collector:
       needs: [generate_matrix, build]
@@ -622,6 +629,19 @@ jobs:
             TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
             echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
+        - name: 📥 Download All Firmware Artifacts
+          uses: actions/download-artifact@v4
+          with:
+            path: collected-firmware
+
+        - name: 📂 Merge Firmware Files
+          run: |
+            mkdir -p Releases
+            echo "Collecting firmware files..."
+            find collected-firmware -type f \( -name "*.uf2" -o -name "*.hex" \) -exec cp {} Releases/ \;
+            echo "Firmware files collected:"
+            ls -lah Releases
+
         - name: 🔎 Verify Collected Payloads
           run: |
             echo "Expected builds: $MATRIX_COUNT"
@@ -633,4 +653,47 @@ jobs:
             echo "File listing:"
             ls -lh Releases
 
-        
+        - name: 💾 Upload HEX Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-hex
+            path: Releases/*.hex
+
+        - name: 💾 Upload UF2 Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-uf2
+            path: Releases/*.uf2
+
+        - name: 📁 Create/Update Github Latest Release
+          continue-on-error: true
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "latest"
+            prerelease: false
+            name: "Latest Firmware"
+            body: |
+              Latest successful SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: true
+
+        - name: 📁 Create/Update Github Daily Release
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "${{ env.TAG_NAME }}"
+            prerelease: true
+            name: "${{ env.TAG_NAME }}"
+            body: |
+              Archive of successful daily SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
