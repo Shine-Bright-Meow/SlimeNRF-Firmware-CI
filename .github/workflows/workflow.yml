@@ -267,10 +267,30 @@ jobs:
             mv data/tmp.json data/lookups.json
           done
 
+          # Resolve Custom Repository Hash
+          CUSTOM_URL="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git"
+          CUSTOM_BRANCH="custom"
+          CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH")"
+          CUSTOM_SHORT="$(echo "$CUSTOM_SHA" | cut -c1-7)"
+          jq \
+            --arg url "$CUSTOM_URL" \
+            --arg branch "$CUSTOM_BRANCH" \
+            --arg sha "$CUSTOM_SHA" \
+            --arg short "$CUSTOM_SHORT" \
+            '.Custom = {
+              repository: $url,
+              branch: $branch,
+              commit: $sha,
+              short_commit: $short
+            }' \
+            data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
+
           # Store Daily Tag
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
+
 
       - name: 📦 Cache Lookups
         uses: actions/cache@v4
