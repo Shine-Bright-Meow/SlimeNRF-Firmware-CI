@@ -679,7 +679,7 @@ jobs:
             path: Releases/*.uf2
 
         - name: 🔧 Setup GitHub CLI
-          uses: actions/setup-gh@v2
+          uses: wusatosi/setup-gh@v1.1
           with:
             version: latest
 
