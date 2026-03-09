@@ -156,10 +156,12 @@ jobs:
             | ($root.profiles) as $profiles
             | ($root.sources) as $sources
             | {boards: (
-                $root.variants
-                | map(expand(.; $profiles; $sources))
-                | add
-              )}
+              $root.variants
+              | map(expand(.; $profiles; $sources))
+              | add
+              | to_entries
+              | map(.value + {index: (.key + 1)})
+            )}
           ' "$MATRIX_FILE")"
 
           echo "Matrix JSON length: ${#MATRIX}"
