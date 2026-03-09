@@ -590,10 +590,52 @@ jobs:
             mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      - name: 💾 Cache Build Payload
+      - name: 📦 Cache Build Payload
         if: ${{ steps.build-firmware.outcome == 'success' }}
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/Releases-${{ matrix.boards.index }}
           key: payload-${{ github.run_id }}-${{ matrix.boards.index }}
 
+  collector:
+      needs: [generate_matrix, build]
+      continue-on-error: true
+      env:
+        MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
+      runs-on: ubuntu-latest
+      steps:
+
+        - name: 💻 Checkout Repository
+          uses: actions/checkout@v5
+
+        - name: 📦 Restore All Payloads
+          shell: bash
+          run: |
+            mkdir -p zephyr-workspace
+            for ((i=1;i<=${MATRIX_COUNT};i++)); do
+              echo "Restoring payload-${{ github.run_id }}-$i"
+              actions/cache/restore@v4 \
+                --path "zephyr-workspace/Releases-$i" \
+                --key "payload-${{ github.run_id }}-$i" || true
+            done
+
+        - name: 📁 Merge All Payloads
+          run: |
+            shopt -s nullglob
+            for dir in zephyr-workspace/Releases-*; do
+              echo "Collecting files from $dir"
+              mv "$dir"/* Releases/ 2>/dev/null || true
+            done
+            echo "Merged firmware files:"
+            ls -lh Releases
+
+        - name: 🔎 Verify Collected Payloads
+          run: |
+            echo "Expected builds: $MATRIX_COUNT"
+            HEX_COUNT=$(ls Releases/*.hex 2>/dev/null | wc -l || true)
+            UF2_COUNT=$(ls Releases/*.uf2 2>/dev/null | wc -l || true)
+            echo "HEX files: $HEX_COUNT"
+            echo "UF2 files: $UF2_COUNT"
+            echo ""
+            echo "File listing:"
+            ls -lh Releases
