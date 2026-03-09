@@ -479,8 +479,8 @@ jobs:
       - name: 🔧 Preparing Build Environment
         run: |
           cd zephyr-workspace
-          sudo rm -rf Releases
-          mkdir Releases
+          sudo rm -rf Releases-${{ matrix.boards.index }}
+          mkdir Releases-${{ matrix.boards.index }}
 
       - name: 🔧 Configure Tracker Options
         if: ${{ matrix.boards.type == 'tracker' }}
@@ -580,14 +580,14 @@ jobs:
           UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
 
           if [ -f "$HEX_SRC" ]; then
-            mv "$HEX_SRC" "Releases/${{ matrix.boards.filename }}.hex"
+            mv "$HEX_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.hex"
           else
             echo "Missing expected HEX output: $HEX_SRC" >&2
             exit 1
           fi
 
           if [ -f "$UF2_SRC" ]; then
-            mv "$UF2_SRC" "Releases/${{ matrix.boards.filename }}.uf2"
+            mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
       - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
