@@ -534,7 +534,7 @@ jobs:
             sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
           fi
 
-      - name: 🔎 Retrieve Custom Commit
+      - name: 🔎 Retrieve Custom Boards Commit
         id: custom-hash
         shell: bash
         run: |
@@ -542,7 +542,8 @@ jobs:
           CUSTOM_SHA=$(jq -r --arg key "$CUSTOM_KEY" '.custom[$key]' data/lookups.json)
           echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: 📦 Restore Custom Board Cache
+      - name: 📦 Restore Custom Boards Cache
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
         id: cache-custom
         uses: actions/cache@v4
         with:
@@ -558,8 +559,8 @@ jobs:
           sudo rm -rf custom
           git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
 
-      - name: 📦 Save Custom Board Cache
-        if: steps.cache-custom.outputs.cache-hit != 'true'
+      - name: 📦 Save Custom Boards Cache
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/custom
@@ -595,12 +596,7 @@ jobs:
             mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      - name: 📦 Cache Build Payload
-        if: ${{ steps.build-firmware.outcome == 'success' }}
-        uses: actions/cache/save@v4
-        with:
-          path: zephyr-workspace/Releases-${{ matrix.boards.index }}
-          key: payload-${{ github.run_id }}-${{ matrix.boards.index }}
+      
 
   collector:
       needs: [generate_matrix, build]
@@ -626,27 +622,6 @@ jobs:
             TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
             echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
-        - name: 📦 Restore All Payloads
-          shell: bash
-          run: |
-            mkdir -p zephyr-workspace
-            for ((i=1;i<=${MATRIX_COUNT};i++)); do
-              echo "Restoring payload-${{ github.run_id }}-$i"
-              actions/cache/restore@v4 \
-                --path "zephyr-workspace/Releases-$i" \
-                --key "payload-${{ github.run_id }}-$i" || true
-            done
-
-        - name: 📁 Merge All Payloads
-          run: |
-            shopt -s nullglob
-            for dir in zephyr-workspace/Releases-*; do
-              echo "Collecting files from $dir"
-              mv "$dir"/* Releases/ 2>/dev/null || true
-            done
-            echo "Merged firmware files:"
-            ls -lh Releases
-
         - name: 🔎 Verify Collected Payloads
           run: |
             echo "Expected builds: $MATRIX_COUNT"
@@ -658,47 +633,4 @@ jobs:
             echo "File listing:"
             ls -lh Releases
 
-        - name: 💾 Upload HEX Artifacts
-          continue-on-error: true
-          uses: actions/upload-artifact@v5
-          with:
-            name: firmware-hex
-            path: Releases/*.hex
-
-        - name: 💾 Upload UF2 Artifacts
-          continue-on-error: true
-          uses: actions/upload-artifact@v5
-          with:
-            name: firmware-uf2
-            path: Releases/*.uf2
-
-        - name: 📁 Create/Update Github Latest Release
-          continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-          uses: mini-bomba/create-github-release@v1.2.0
-          with:
-            token: ${{ secrets.gh_token }}
-            tag: "latest"
-            prerelease: false
-            name: "Latest Firmware"
-            body: |
-              Latest successful SlimeNRF Firmware build. (Automated)
-            files: |
-              Releases/*.hex
-              Releases/*.uf2
-            clear_attachments: true
-
-        - name: 📁 Create/Update Github Daily Release
-          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-          uses: mini-bomba/create-github-release@v1.2.0
-          with:
-            token: ${{ secrets.gh_token }}
-            tag: "${{ env.TAG_NAME }}"
-            prerelease: true
-            name: "${{ env.TAG_NAME }}"
-            body: |
-              Archive of successful daily SlimeNRF Firmware build. (Automated)
-            files: |
-              Releases/*.hex
-              Releases/*.uf2
-            clear_attachments: false
+        
