@@ -590,4 +590,10 @@ jobs:
             mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      
+      - name: 💾 Cache Build Payload
+        if: ${{ steps.build-firmware.outcome == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: zephyr-workspace/Releases-${{ matrix.boards.index }}
+          key: payload-${{ github.run_id }}-${{ matrix.boards.index }}
+
