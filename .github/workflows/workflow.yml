@@ -233,7 +233,7 @@ jobs:
                 return 0
               fi
 
-              echo "Attempt $i/$attempts failed for $repo@$ref — retrying in ${delay}s..."
+              echo "Attempt $i/$attempts failed for $repo@$ref — retrying in ${delay}s..." >&2
               sleep "$delay"
             done
 
