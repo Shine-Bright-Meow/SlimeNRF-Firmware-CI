@@ -590,46 +590,4 @@ jobs:
             mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
-        if: ${{ steps.build-firmware.outcome == 'success' }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.boards.filename }}.hex
-          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
-
-      - name: 💾 Upload Artifact (UF2) - ${{ matrix.boards.boardname }}
-        if: ${{ steps.build-firmware.outcome == 'success' && hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.boards.filename }}.uf2
-          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
-
-      - name: 📁 Create/Update Github Latest Release
-        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        uses: mini-bomba/create-github-release@v1.2.0
-        with:
-          token: ${{ secrets.gh_token }}
-          tag: "latest"
-          prerelease: false
-          name: "Latest Firmware"
-          body: |
-            Latest successful SlimeNRF Firmware build. (Automated)
-          files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
-          clear_attachments: false
-
-      - name: 📁 Create/Update Github Daily Release
-        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        uses: mini-bomba/create-github-release@v1.2.0
-        with:
-          token: ${{ secrets.gh_token }}
-          tag: "${{ env.TAG_NAME }}"
-          prerelease: true
-          name: "${{ env.TAG_NAME }}"
-          body: |
-            Archive of successful daily SlimeNRF Firmware build. (Automated)
-          files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
-          clear_attachments: false
+      
