@@ -270,20 +270,16 @@ jobs:
           # Resolve Custom Repository Hash
           CUSTOM_URL="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git"
           CUSTOM_BRANCH="custom"
+
           CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH")"
-          CUSTOM_SHORT="$(echo "$CUSTOM_SHA" | cut -c1-7)"
+          CUSTOM_KEY="${CUSTOM_URL}@${CUSTOM_BRANCH}"
+
           jq \
-            --arg url "$CUSTOM_URL" \
-            --arg branch "$CUSTOM_BRANCH" \
+            --arg key "$CUSTOM_KEY" \
             --arg sha "$CUSTOM_SHA" \
-            --arg short "$CUSTOM_SHORT" \
-            '.Custom = {
-              repository: $url,
-              branch: $branch,
-              commit: $sha,
-              short_commit: $short
-            }' \
+            '.custom[$key]=$sha' \
             data/lookups.json > data/tmp.json
+
           mv data/tmp.json data/lookups.json
 
           # Store Daily Tag
@@ -534,25 +530,36 @@ jobs:
             sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
           fi
 
+      - name: 🔎 Retrieve Custom Commit
+        id: custom-hash
+        shell: bash
+        run: |
+          CUSTOM_KEY="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git@custom"
+          CUSTOM_SHA=$(jq -r --arg key "$CUSTOM_KEY" '.custom[$key]' data/lookups.json)
+          echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Restore Custom Board Cache
+        id: cache-custom
+        uses: actions/cache@v4
+        with:
+          path: zephyr-workspace/custom
+          key: custom-${{ steps.custom-hash.outputs.sha }}
+
       - name: 🔨 Stacked Prep
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
         run: |
           # To Do: Cache Stacked Variant and other Custom boards when they are ready.
           cd zephyr-workspace
           printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
-          sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedi2c.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedspi.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedi2c.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedspi.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.yml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+          sudo rm -rf custom
+          git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
+
+      - name: 📦 Save Custom Board Cache
+        if: steps.cache-custom.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: zephyr-workspace/custom
+          key: custom-${{ steps.custom-hash.outputs.sha }}
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         id: build-firmware
