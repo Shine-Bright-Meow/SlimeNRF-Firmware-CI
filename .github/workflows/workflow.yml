@@ -66,6 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.gen.outputs.matrix }}
+      count: ${{ steps.gen.outputs.count }}
     steps:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
@@ -170,7 +171,10 @@ jobs:
             exit 1
           fi
 
+          COUNT=$(echo "$MATRIX" | jq '.boards | length')
+
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
 
   generate_lookups:
     runs-on: ubuntu-latest
