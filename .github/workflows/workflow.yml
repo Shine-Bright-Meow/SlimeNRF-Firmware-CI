@@ -66,6 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.gen.outputs.matrix }}
+      count: ${{ steps.gen.outputs.count }}
     steps:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v5
@@ -156,10 +157,12 @@ jobs:
             | ($root.profiles) as $profiles
             | ($root.sources) as $sources
             | {boards: (
-                $root.variants
-                | map(expand(.; $profiles; $sources))
-                | add
-              )}
+              $root.variants
+              | map(expand(.; $profiles; $sources))
+              | add
+              | to_entries
+              | map(.value + {index: (.key + 1)})
+            )}
           ' "$MATRIX_FILE")"
 
           echo "Matrix JSON length: ${#MATRIX}"
@@ -168,7 +171,10 @@ jobs:
             exit 1
           fi
 
+          COUNT=$(echo "$MATRIX" | jq '.boards | length')
+
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
 
   generate_lookups:
     runs-on: ubuntu-latest
@@ -210,10 +216,29 @@ jobs:
           fi
 
           resolve_sha () {
-            git ls-remote "$1" \
-              "refs/heads/$2" \
-              "refs/tags/$2" \
-              "$2" | head -n1 | awk '{print $1}'
+            local repo="$1"
+            local ref="$2"
+            local attempts=5
+            local delay=5
+            local sha=""
+
+            for ((i=1;i<=attempts;i++)); do
+              sha=$(git ls-remote "$repo" \
+                "refs/heads/$ref" \
+                "refs/tags/$ref" \
+                "$ref" | head -n1 | awk '{print $1}')
+
+              if [[ -n "$sha" ]]; then
+                echo "$sha"
+                return 0
+              fi
+
+              echo "Attempt $i/$attempts failed for $repo@$ref — retrying in ${delay}s..." >&2
+              sleep "$delay"
+            done
+
+            echo "ERROR: Could not resolve SHA for $repo@$ref after $attempts attempts" >&2
+            echo ""
           }
           echo "{}" > data/lookups.json
 
@@ -264,6 +289,21 @@ jobs:
               data/lookups.json > data/tmp.json
             mv data/tmp.json data/lookups.json
           done
+
+          # Resolve Custom Repository Hash
+          CUSTOM_URL="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git"
+          CUSTOM_BRANCH="custom"
+
+          CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH")"
+          CUSTOM_KEY="${CUSTOM_URL}@${CUSTOM_BRANCH}"
+
+          jq \
+            --arg key "$CUSTOM_KEY" \
+            --arg sha "$CUSTOM_SHA" \
+            '.custom[$key]=$sha' \
+            data/lookups.json > data/tmp.json
+
+          mv data/tmp.json data/lookups.json
 
           # Store Daily Tag
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
@@ -321,12 +361,6 @@ jobs:
           echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
           echo "$CI_MESSAGE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-
-      - name: 🏷️ Restore Tag Name
-        id: restore-tag
-        run: |
-          TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
       - name: 📦 Restore Zephyr SDK
         uses: actions/cache/restore@v4
@@ -433,7 +467,7 @@ jobs:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
-      - name: 💻 Clone Repository
+      - name: 📥 Clone Repository
         if: steps.cache-repository.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
@@ -452,8 +486,8 @@ jobs:
       - name: 🔧 Preparing Build Environment
         run: |
           cd zephyr-workspace
-          sudo rm -rf Releases
-          mkdir Releases
+          sudo rm -rf Releases-${{ matrix.boards.index }}
+          mkdir Releases-${{ matrix.boards.index }}
 
       - name: 🔧 Configure Tracker Options
         if: ${{ matrix.boards.type == 'tracker' }}
@@ -513,30 +547,51 @@ jobs:
             sed -i 's|//[[:space:]]*sw0[[:space:]]*=|sw0 =|g' SlimeVR-Tracker-nRF/boards/xiao_ble_nrf52840_sense.overlay
           fi
 
-      - name: 🔨 Stacked Prep
+      - name: 🔎 Retrieve Custom Boards Commit
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        id: custom-hash
+        shell: bash
         run: |
-          # To Do: Cache Stacked Variant and other Custom boards when they are ready.
+          CUSTOM_KEY="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git@custom"
+          CUSTOM_SHA=$(jq -r --arg key "$CUSTOM_KEY" '.custom[$key]' data/lookups.json)
+          echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: 📦 Restore Custom Boards Cache
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        id: cache-custom
+        uses: actions/cache@v4
+        with:
+          path: zephyr-workspace/custom
+          key: custom-${{ steps.custom-hash.outputs.sha }}
+
+      - name: 📥 Clone Custom Boards Repository
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
+        run: |
+          # To Do: This is a placeholder for Stacked variant and custom board files.
           cd zephyr-workspace
-          printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
-          sudo rm -f SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedi2c.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedi2c.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/pm_static_promicro_uf2_nrf52840_stackedspi.yml -o SlimeVR-Tracker-nRF/pm_static_promicro_uf2_nrf52840_stackedspi.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedi2c.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedi2c.overlay
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/socs/nrf52840_stackedspi.overlay -o SlimeVR-Tracker-nRF/socs/nrf52840_stackedspi.overlay
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.yaml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c_defconfig
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.yaml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi_defconfig
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedi2c.dts
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/promicro_uf2_stackedspi.dts
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.yml -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.yml
-          curl -fSL https://raw.githubusercontent.com/Shine-Bright-Meow/SlimeNRF-Tracker/stacked-variant/boards/nordic/promicro_uf2/board.c -o SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
+          sudo rm -rf custom
+          git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
+
+      - name: 📦 Save Custom Boards Cache
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
+        uses: actions/cache/save@v4
+        with:
+          path: zephyr-workspace/custom
+          key: custom-${{ steps.custom-hash.outputs.sha }}
 
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         id: build-firmware
         run: |
+          FILENAME="${{ matrix.boards.filename }}"
+
           cd zephyr-workspace
+
+          shopt -s nocasematch
+          if [[ "$FILENAME" == *stacked* ]]; then
+            printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
+          fi
+          shopt -u nocasematch
+
           sed -i '/printk(FW_STRING);/a printk(\"Build from '${{ github.repository }}'\\n\");' SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
           mkdir SlimeVR-Tracker-nRF/build
@@ -553,56 +608,103 @@ jobs:
           UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
 
           if [ -f "$HEX_SRC" ]; then
-            mv "$HEX_SRC" "Releases/${{ matrix.boards.filename }}.hex"
+            mv "$HEX_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.hex"
           else
             echo "Missing expected HEX output: $HEX_SRC" >&2
             exit 1
           fi
 
           if [ -f "$UF2_SRC" ]; then
-            mv "$UF2_SRC" "Releases/${{ matrix.boards.filename }}.uf2"
+            mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
           fi
 
-      - name: 💾 Upload Artifact (HEX) - ${{ matrix.boards.boardname }}
-        if: ${{ steps.build-firmware.outcome == 'success' }}
-        uses: actions/upload-artifact@v5
+      - name: 💾 Upload Firmware Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.boards.filename }}.hex
-          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
+          name: firmware-${{ matrix.boards.index }}
+          path: |
+            zephyr-workspace/Releases-${{ matrix.boards.index }}/*.uf2
+            zephyr-workspace/Releases-${{ matrix.boards.index }}/*.hex
+          retention-days: 1
 
-      - name: 💾 Upload Artifact (UF2) - ${{ matrix.boards.boardname }}
-        if: ${{ steps.build-firmware.outcome == 'success' && hashFiles(format('zephyr-workspace/Releases/{0}.uf2', matrix.boards.filename)) != '' }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.boards.filename }}.uf2
-          path: zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
+  collector:
+      needs: [generate_matrix, build]
+      continue-on-error: true
+      env:
+        MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
+      runs-on: ubuntu-latest
+      steps:
 
-      - name: 📁 Create/Update Github Latest Release
-        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        uses: mini-bomba/create-github-release@v1.2.0
-        with:
-          token: ${{ secrets.gh_token }}
-          tag: "latest"
-          prerelease: false
-          name: "Latest Firmware"
-          body: |
-            Latest successful SlimeNRF Firmware build. (Automated)
-          files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
-          clear_attachments: false
+        - name: 💻 Checkout Repository
+          uses: actions/checkout@v5
 
-      - name: 📁 Create/Update Github Daily Release
-        if: ${{ steps.build-firmware.outcome == 'success' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-        uses: mini-bomba/create-github-release@v1.2.0
-        with:
-          token: ${{ secrets.gh_token }}
-          tag: "${{ env.TAG_NAME }}"
-          prerelease: true
-          name: "${{ env.TAG_NAME }}"
-          body: |
-            Archive of successful daily SlimeNRF Firmware build. (Automated)
-          files: |
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.hex
-            zephyr-workspace/Releases/${{ matrix.boards.filename }}.uf2
-          clear_attachments: false
+        - name: 📦 Restore Lookups Cache
+          uses: actions/cache@v4
+          with:
+            path: data/lookups.json
+            key: data-${{ github.run_id }}
+            fail-on-cache-miss: true
+
+        - name: 🏷️ Restore Tag Name
+          id: restore-tag
+          run: |
+            TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
+            echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+        - name: 📥 Download All Firmware Artifacts
+          uses: actions/download-artifact@v4
+          with:
+            path: collected-firmware
+
+        - name: 📂 Merge Firmware Files
+          run: |
+            mkdir -p Releases
+            echo "Collecting firmware files..."
+            find collected-firmware -type f \( -name "*.uf2" -o -name "*.hex" \) -exec cp {} Releases/ \;
+            echo "Firmware files collected:"
+            ls -lah Releases
+
+        - name: 💾 Upload HEX Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-hex
+            path: Releases/*.hex
+
+        - name: 💾 Upload UF2 Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-uf2
+            path: Releases/*.uf2
+
+        - name: 📁 Create/Update Github Latest Release
+          continue-on-error: true
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "latest"
+            prerelease: false
+            name: "Latest Firmware"
+            body: |
+              Latest successful SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
+
+        - name: 📁 Create/Update Github Daily Release
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "${{ env.TAG_NAME }}"
+            prerelease: true
+            name: "${{ env.TAG_NAME }}"
+            body: |
+              Archive of successful daily SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
