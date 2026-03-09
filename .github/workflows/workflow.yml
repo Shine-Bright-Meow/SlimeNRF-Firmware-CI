@@ -349,12 +349,6 @@ jobs:
           echo "$CI_MESSAGE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: 🏷️ Restore Tag Name
-        id: restore-tag
-        run: |
-          TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
-
       - name: 📦 Restore Zephyr SDK
         uses: actions/cache/restore@v4
         with:
@@ -608,6 +602,19 @@ jobs:
         - name: 💻 Checkout Repository
           uses: actions/checkout@v5
 
+        - name: 📦 Restore Lookups Cache
+          uses: actions/cache@v4
+          with:
+            path: data/lookups.json
+            key: data-${{ github.run_id }}
+            fail-on-cache-miss: true
+
+        - name: 🏷️ Restore Tag Name
+          id: restore-tag
+          run: |
+            TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
+            echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
         - name: 📦 Restore All Payloads
           shell: bash
           run: |
@@ -639,3 +646,48 @@ jobs:
             echo ""
             echo "File listing:"
             ls -lh Releases
+
+        - name: 💾 Upload HEX Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-hex
+            path: Releases/*.hex
+
+        - name: 💾 Upload UF2 Artifacts
+          continue-on-error: true
+          uses: actions/upload-artifact@v5
+          with:
+            name: firmware-uf2
+            path: Releases/*.uf2
+
+        - name: 📁 Create/Update Github Latest Release
+          continue-on-error: true
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "latest"
+            prerelease: false
+            name: "Latest Firmware"
+            body: |
+              Latest successful SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: true
+
+        - name: 📁 Create/Update Github Daily Release
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "${{ env.TAG_NAME }}"
+            prerelease: true
+            name: "${{ env.TAG_NAME }}"
+            body: |
+              Archive of successful daily SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
