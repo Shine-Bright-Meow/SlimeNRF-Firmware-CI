@@ -216,10 +216,29 @@ jobs:
           fi
 
           resolve_sha () {
-            git ls-remote "$1" \
-              "refs/heads/$2" \
-              "refs/tags/$2" \
-              "$2" | head -n1 | awk '{print $1}'
+            local repo="$1"
+            local ref="$2"
+            local attempts=5
+            local delay=5
+            local sha=""
+
+            for ((i=1;i<=attempts;i++)); do
+              sha=$(git ls-remote "$repo" \
+                "refs/heads/$ref" \
+                "refs/tags/$ref" \
+                "$ref" | head -n1 | awk '{print $1}')
+
+              if [[ -n "$sha" ]]; then
+                echo "$sha"
+                return 0
+              fi
+
+              echo "Attempt $i/$attempts failed for $repo@$ref — retrying in ${delay}s..."
+              sleep "$delay"
+            done
+
+            echo "ERROR: Could not resolve SHA for $repo@$ref after $attempts attempts" >&2
+            echo ""
           }
           echo "{}" > data/lookups.json
 
