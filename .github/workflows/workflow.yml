@@ -291,12 +291,17 @@ jobs:
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
-
       - name: 📦 Cache Lookups
         uses: actions/cache@v4
         with:
           path: data/lookups.json
           key: data-${{ github.run_id }}
+
+      - name: 💾 Artifact Lookups
+        uses: actions/upload-artifact@v5
+        with:
+          name: Lookups
+          path: data/lookups.json
 
   build:
     needs: [setup, generate_matrix, generate_lookups]
