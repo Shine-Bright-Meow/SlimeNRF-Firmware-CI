@@ -316,12 +316,6 @@ jobs:
           path: data/lookups.json
           key: data-${{ github.run_id }}
 
-      - name: 💾 Artifact Lookups
-        uses: actions/upload-artifact@v5
-        with:
-          name: Lookups
-          path: data/lookups.json
-
   build:
     needs: [setup, generate_matrix, generate_lookups]
     continue-on-error: true
@@ -660,17 +654,6 @@ jobs:
             find collected-firmware -type f \( -name "*.uf2" -o -name "*.hex" \) -exec cp {} Releases/ \;
             echo "Firmware files collected:"
             ls -lah Releases
-
-        - name: 🔎 Verify Collected Payloads
-          run: |
-            echo "Expected builds: $MATRIX_COUNT"
-            HEX_COUNT=$(ls Releases/*.hex 2>/dev/null | wc -l || true)
-            UF2_COUNT=$(ls Releases/*.uf2 2>/dev/null | wc -l || true)
-            echo "HEX files: $HEX_COUNT"
-            echo "UF2 files: $UF2_COUNT"
-            echo ""
-            echo "File listing:"
-            ls -lh Releases
 
         - name: 💾 Upload HEX Artifacts
           continue-on-error: true
