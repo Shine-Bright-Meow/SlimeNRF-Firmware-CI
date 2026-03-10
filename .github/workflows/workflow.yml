@@ -711,10 +711,10 @@ jobs:
             name: firmware-uf2
             path: Releases/*.uf2
 
-        - name: 🔑 Authenticate GitHub CLI
-          id: gh-auth
-          run: |
-            gh auth login --with-token <<< "${{ secrets.gh_token }}"
+        # - name: 🔑 Authenticate GitHub CLI
+        #   id: gh-auth
+        #   run: |
+        #     gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
         # - name: 📁 Upload Latest Release
         #   id: upload-latest
