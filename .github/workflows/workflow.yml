@@ -364,7 +364,7 @@ jobs:
           key: west-workspace-${{ env.ZEPHYR_SDK_VERSION }}-${{ steps.sdk-hash.outputs.sdk_sha }}
 
       - name: 📦 Restore Zephyr Python Requirements
-        id: cache-pip
+        id: restore-pip
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
@@ -374,7 +374,7 @@ jobs:
 
       - name: 📦 Restore Python Venv
         id: restore-venv
-        if: steps.cache-pip.outputs.cache-hit != 'true'
+        if: steps.restore-pip.outputs.cache-hit != 'true'
         uses: actions/cache/restore@v4
         with:
           path: ~/.venv
@@ -403,14 +403,14 @@ jobs:
 
       - name: 🐍 Install Zephyr Python Requirements
         id: install-pip-requirements
-        if: steps.cache-pip.outputs.cache-hit != 'true'
+        if: steps.restore-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 📦 Save Zephyr Python Requirements
-        id: cache-zephyr-pip
-        if: steps.cache-pip.outputs.cache-hit != 'true'
+        id: cache-pip
+        if: steps.restore-pip.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ~/.venv
