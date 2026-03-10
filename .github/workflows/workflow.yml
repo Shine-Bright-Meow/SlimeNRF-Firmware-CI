@@ -188,7 +188,7 @@ jobs:
       - name: 🏷️ Generate Daily Tag
         id: daily-tag
         run: |
-          TAG_NAME="daily-$(date -u +%Y%m%d)"
+          TAG_NAME="daily-$(date -u +'%Y-%m-%d')"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create or Update Tag
