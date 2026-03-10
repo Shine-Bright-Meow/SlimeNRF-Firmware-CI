@@ -591,7 +591,6 @@ jobs:
             sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
             sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
             sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
-
           fi
           shopt -u nocasematch
 
