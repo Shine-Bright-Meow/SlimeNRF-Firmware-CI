@@ -577,10 +577,10 @@ jobs:
         shell: bash
         run: |
           filename="${{ matrix.boards.filename }}"
-          repository_url="${{ matrix.repository_url }}"
-          repository_revision="${{ matrix.repository_revision }}"
-          type="${{ matrix.type }}"
-          sdk_revision="${{ matrix.sdk_revision }}"
+          repository_url="${{ matrix.boards.repository_url }}"
+          repository_revision="${{ matrix.boards.repository_revision }}"
+          type="${{ matrix.boards.type }}"
+          sdk_revision="${{ matrix.boards.sdk_revision }}"
 
           cd zephyr-workspace
           
