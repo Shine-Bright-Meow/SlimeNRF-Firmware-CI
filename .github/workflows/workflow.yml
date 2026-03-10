@@ -426,7 +426,7 @@ jobs:
           echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Repository
-        id: cache-repository
+        id: restore-repository
         uses: actions/cache/restore@v4
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
@@ -434,7 +434,7 @@ jobs:
 
       - name: 📥 Clone Repository
         id: clone-repository
-        if: steps.cache-repository.outputs.cache-hit != 'true'
+        if: steps.restore-repository.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           rm -rf SlimeVR-Tracker-nRF
@@ -444,7 +444,7 @@ jobs:
 
       - name: 📦 Save Repository Cache
         id: cache-repository
-        if: steps.cache-repository.outputs.cache-hit != 'true'
+        if: steps.restore-repository.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
@@ -527,7 +527,7 @@ jobs:
 
       - name: 📦 Restore Custom Boards Cache
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
-        id: cache-custom
+        id: restore-custom
         uses: actions/cache@v4
         with:
           path: zephyr-workspace/custom
@@ -535,7 +535,7 @@ jobs:
 
       - name: 📥 Clone Custom Boards Repository
         id: clone-custom
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.restore-custom.outputs.cache-hit != 'true') }}
         run: |
           # To Do: This is a placeholder for Stacked variant and custom board files.
           cd zephyr-workspace
@@ -544,7 +544,7 @@ jobs:
 
       - name: 📦 Save Custom Boards Cache
         id: cache-custom
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
+        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.restore-custom.outputs.cache-hit != 'true') }}
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/custom
@@ -624,7 +624,7 @@ jobs:
           uses: actions/checkout@v5
 
         - name: 📦 Restore Lookups Cache
-          id: restore-lookups
+          id: restore-lookups2
           uses: actions/cache@v4
           with:
             path: data/lookups.json
