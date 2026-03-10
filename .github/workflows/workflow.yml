@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🧰 Cache + Install Apt Dependencies
+        id: cache-packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: >-
@@ -41,6 +42,7 @@ jobs:
           key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
 
       - name: 🪁 Install Zephyr SDK
+        id: install-zephyr
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
           wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ env.ZEPHYR_SDK_VERSION }}/zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}_linux-x86_64_minimal.tar.xz
@@ -192,6 +194,7 @@ jobs:
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create or Update Tag
+        id: tag-management
         run: |
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
 
@@ -201,6 +204,7 @@ jobs:
           git push -f origin "$TAG_NAME"
 
       - name: 🔎 Generate Lookups
+        id: generate-lookups
         shell: bash
         run: |
           set -euo pipefail
@@ -282,6 +286,7 @@ jobs:
           mv data/tmp.json data/lookups.json
 
       - name: 📦 Cache Lookups
+        id: cache-lookups
         uses: actions/cache@v4
         with:
           path: data/lookups.json
@@ -300,6 +305,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: 🧰 Cache + Install Apt Dependencies
+        id: restore-packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: >-
@@ -309,6 +315,7 @@ jobs:
           version: 1.0
 
       - name: 📦 Restore Lookups Cache
+        id: restore-lookups
         uses: actions/cache@v4
         with:
           path: data/lookups.json
@@ -316,6 +323,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: 📦 Restore Zephyr SDK
+        id: restore-zephyr
         uses: actions/cache/restore@v4
         with:
           path: ~/zephyr-sdk
@@ -323,6 +331,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: 🪁 Register Zephyr SDK
+        id: register-zephyr
         run: |
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
@@ -374,6 +383,7 @@ jobs:
             venv-${{ env.ZEPHYR_SDK_VERSION }}-
 
       - name: ♻️ Initialize Zephyr Workspace
+        id: init-zephyr
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
           export PATH="$HOME/.venv/bin:$PATH"
@@ -392,12 +402,14 @@ jobs:
           west zephyr-export
 
       - name: 🐍 Install Zephyr Python Requirements
+        id: install-pip-requirements
         if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 📦 Save Zephyr Python Requirements
+        id: cache-zephyr-pip
         if: steps.cache-pip.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
@@ -421,6 +433,7 @@ jobs:
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
       - name: 📥 Clone Repository
+        id: clone-repository
         if: steps.cache-repository.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
@@ -430,6 +443,7 @@ jobs:
           git -C SlimeVR-Tracker-nRF submodule update --init --recursive --depth 1
 
       - name: 📦 Save Repository Cache
+        id: cache-repository
         if: steps.cache-repository.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
@@ -437,12 +451,14 @@ jobs:
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
 
       - name: 🔧 Preparing Build Environment
+        id: prepare-build
         run: |
           cd zephyr-workspace
           sudo rm -rf Releases-${{ matrix.boards.index }}
           mkdir Releases-${{ matrix.boards.index }}
 
       - name: 🔧 Configure Tracker Options
+        id: configure-tracker
         if: ${{ matrix.boards.type == 'tracker' }}
         shell: bash
         run: |
@@ -518,6 +534,7 @@ jobs:
           key: custom-${{ steps.custom-hash.outputs.sha }}
 
       - name: 📥 Clone Custom Boards Repository
+        id: clone-custom
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
         run: |
           # To Do: This is a placeholder for Stacked variant and custom board files.
@@ -526,25 +543,25 @@ jobs:
           git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
 
       - name: 📦 Save Custom Boards Cache
+        id: cache-custom
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.cache-custom.outputs.cache-hit != 'true') }}
         uses: actions/cache/save@v4
         with:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
 
-      - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
-        id: build-firmware
+      - name: 🔧 Board Adjustments
+        id: board-adjustments
+        shell: bash
         run: |
-          FILENAME="${{ matrix.boards.filename }}"
+          filename="${{ matrix.boards.filename }}"
           repository_url="${{ matrix.repository_url }}"
           repository_revision="${{ matrix.repository_revision }}"
           type="${{ matrix.type }}"
           sdk_revision="${{ matrix.sdk_revision }}"
 
-          cd zephyr-workspace
-
           shopt -s nocasematch
-          if [[ ("$FILENAME" == *stacked*) && "$type" == "tracker" ]]; then # Will be used to copy custom boards before build.
+          if [[ ("$filename" == *stacked*) && "$type" == "tracker" ]]; then # Will be used to copy custom boards before build.
             printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
           elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git" && "$repository_revision" == "main" && "$type" == "receiver" && "$sdk_revision" == "v3.1-branch" ]]; then
             sed -i 's/^[[:space:]]*#\s*\(CONFIG_NRFX_TIMER1=y\)/\1/' SlimeVR-Tracker-nRF/prj.conf
@@ -552,6 +569,11 @@ jobs:
             sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
           fi
           shopt -u nocasematch
+
+      - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
+        id: build-firmware
+        run: |
+          cd zephyr-workspace
 
           sed -i '/printk(FW_STRING);/a printk(\"Build from '${{ github.repository }}'\\n\");' SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
@@ -580,6 +602,7 @@ jobs:
           fi
 
       - name: 💾 Upload Firmware Artifact
+        id: upload-payload
         if: ${{ steps.build-firmware.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
@@ -601,6 +624,7 @@ jobs:
           uses: actions/checkout@v5
 
         - name: 📦 Restore Lookups Cache
+          id: restore-lookups
           uses: actions/cache@v4
           with:
             path: data/lookups.json
@@ -614,11 +638,13 @@ jobs:
             echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
         - name: 📥 Download All Firmware Artifacts
+          id: download-payloads
           uses: actions/download-artifact@v4
           with:
             path: collected-firmware
 
         - name: 📂 Merge Firmware Files
+          id: merge-payload
           run: |
             mkdir -p Releases
             echo "Collecting firmware files..."
@@ -627,6 +653,7 @@ jobs:
             ls -lah Releases
 
         - name: 💾 Upload HEX Artifacts
+          id: upload-hex
           continue-on-error: true
           uses: actions/upload-artifact@v5
           with:
@@ -634,6 +661,7 @@ jobs:
             path: Releases/*.hex
 
         - name: 💾 Upload UF2 Artifacts
+          id: upload-uf2
           continue-on-error: true
           uses: actions/upload-artifact@v5
           with:
@@ -641,10 +669,12 @@ jobs:
             path: Releases/*.uf2
 
         - name: 🔑 Authenticate GitHub CLI
+          id: gh-auth
           run: |
             gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
         - name: 📁 Upload Latest Release
+          id: upload-latest
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
           run: |
@@ -652,6 +682,7 @@ jobs:
             gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
 
         - name: 📁 Upload Daily Release
+          id: upload-daily
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
           run: |
