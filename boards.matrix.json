@@ -67,19 +67,19 @@
     },
     {
       "boardname": "butterfly_p1_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_receiver_main",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P1_Receiver"
     },
     {
       "boardname": "butterfly_p2_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_receiver_main",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P2_Receiver"
     },
     {
       "boardname": "butterfly_p3/nrf52820",
-      "source": "slimevr_tracker_nrf_receiver_main",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Butterfly_P3_Receiver"
     },
@@ -103,7 +103,7 @@
     },
     {
       "boardname": "nrf52840dongle/nrf52840",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver"
     },
@@ -115,7 +115,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_XIAO_Receiver"
     },
