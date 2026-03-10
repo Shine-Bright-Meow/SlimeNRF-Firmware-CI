@@ -560,6 +560,8 @@ jobs:
           type="${{ matrix.type }}"
           sdk_revision="${{ matrix.sdk_revision }}"
 
+          cd zephyr-workspace
+          
           shopt -s nocasematch
           if [[ ("$filename" == *stacked*) && "$type" == "tracker" ]]; then # Will be used to copy custom boards before build.
             printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
