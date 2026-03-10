@@ -25,6 +25,10 @@
       "sdk_url": "https://github.com/SlimeVR/sdk-nrf.git",
       "sdk_revision": "slime-esb"
     },
+    "sdk_jiting_esb": {
+      "sdk_url": "https://github.com/jitingcn/sdk-nrf.git",
+      "sdk_revision": "v3.1-branch"
+    },
     "sdk_v3_1_1": {
       "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
       "sdk_revision": "v3.1.1"
@@ -171,7 +175,7 @@
       "boardname": "mochi_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_NoSleep_Mochi_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_Mochi_JitingCat"
     },
     {
       "boardname": "promicro_uf2/nrf52840/chrysalis",
@@ -183,25 +187,25 @@
       "boardname": "promicro_uf2/nrf52840/default_i2c",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_NoSleep_I2C_ProMicro_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_I2C_ProMicro_JitingCat"
     },
     {
       "boardname": "promicro_uf2/nrf52840/default_spi",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_NoSleep_SPI_ProMicro_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_SPI_ProMicro_JitingCat"
     },
     {
       "boardname": "promicro_uf2/nrf52840/i2c",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_NoSleep_I2C_StackedSmol_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_I2C_StackedSmol_JitingCat"
     },
     {
       "boardname": "promicro_uf2/nrf52840/spi",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_NoSleep_SPI_StackedSmol_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_SPI_StackedSmol_JitingCat"
     },
     {
       "boardname": "mochi_uf2/nrf52833",
@@ -1037,7 +1041,7 @@
     "slimevr_tracker_nrf_receiver_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "dev",
-      "profile": "sdk_v3_1_1"
+      "profile": "sdk_jiting_esb"
     },
     "slimevr_tracker_nrf_receiver_main": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
@@ -1067,7 +1071,7 @@
     "slimevr_tracker_nrf_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
       "repository_revision": "dev",
-      "profile": "sdk_v3_1_1"
+      "profile": "sdk_jiting_esb"
     }
   }
 }
