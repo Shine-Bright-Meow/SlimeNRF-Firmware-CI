@@ -588,9 +588,24 @@ jobs:
           if [[ ("$filename" == *stacked*) && "$type" == "tracker" ]]; then # Will be used to copy custom boards before build.
             printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
           elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git" && "$repository_revision" == "main" && "$type" == "receiver" && "$sdk_revision" == "v3.1-branch" ]]; then
-            sed -i 's/^[[:space:]]*#\s*\(CONFIG_NRFX_TIMER1=y\)/\1/' SlimeVR-Tracker-nRF/prj.conf
+            echo "Before modification:"  
+            grep -n "NRFX_TIMER1" SlimeVR-Tracker-nRF/prj.conf || true
+            sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
+            echo "After modification:"
+            grep -n "NRFX_TIMER1" SlimeVR-Tracker-nRF/prj.conf || true
+            echo "Before modification:"  
+            echo "Checking IRQ_DIRECT_CONNECT:"
+            grep -n "IRQ_DIRECT_CONNECT(TIMER1_IRQn" SlimeVR-Tracker-nRF/src/connection/timer.c || true
+            echo "Checking irq_enable:"
+            grep -n "irq_enable(TIMER1_IRQn" SlimeVR-Tracker-nRF/src/connection/timer.c || true
             sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
             sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
+            echo "After modification:"  
+            echo "Checking IRQ_DIRECT_CONNECT:"
+            grep -n "IRQ_DIRECT_CONNECT(TIMER1_IRQn" SlimeVR-Tracker-nRF/src/connection/timer.c || true
+            echo "Checking irq_enable:"
+            grep -n "irq_enable(TIMER1_IRQn" SlimeVR-Tracker-nRF/src/connection/timer.c || true
+
           fi
           shopt -u nocasematch
 
