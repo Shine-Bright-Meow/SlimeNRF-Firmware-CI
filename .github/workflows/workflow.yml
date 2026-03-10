@@ -242,6 +242,28 @@ jobs:
           }
           echo "{}" > data/lookups.json
 
+          # Resolve CI Repository Hash
+          CI_URL="https://github.com/${GITHUB_REPOSITORY}"
+          CI_BRANCH="${GITHUB_REF_NAME}"
+          CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
+          CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
+          CI_MESSAGE=$(git log -1 --pretty=%B)
+          jq \
+          --arg url "$CI_URL" \
+          --arg branch "$CI_BRANCH" \
+          --arg sha "$CI_SHA" \
+          --arg short "$CI_SHORT" \
+          --arg message "$CI_MESSAGE" \
+          '.ci = {
+            repository: $url,
+            branch: $branch,
+            commit: $sha,
+            short_commit: $short,
+            message: $message
+          }' \
+            data/lookups.json > data/tmp.json
+          mv data/tmp.json data/lookups.json
+
           # Resolve SDK Hashes
           jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
           | sort -u | while read url rev; do
@@ -633,6 +655,25 @@ jobs:
             key: data-${{ github.run_id }}
             fail-on-cache-miss: true
 
+        - name: 📟 Restore CI Env Variables
+          id: restore-env
+          shell: bash
+          run: |
+            set -euo pipefail
+
+            CI_SHA=$(jq -r '.ci.commit' data/lookups.json)
+            CI_SHORT=$(jq -r '.ci.short_commit' data/lookups.json)
+            CI_MESSAGE=$(jq -r '.ci.message' data/lookups.json)
+
+            echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
+            echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
+
+            echo "GIT_HASH=$CI_SHORT" >> $GITHUB_ENV
+
+            echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
+            echo "$CI_MESSAGE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+
         - name: 🏷️ Restore Tag Name
           id: restore-tag
           run: |
@@ -675,29 +716,61 @@ jobs:
           run: |
             gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
-        - name: 📁 Upload Latest Release
-          id: upload-latest
-          continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-          run: |
-            FILES=$(find Releases -type f)
-            gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
+        # - name: 📁 Upload Latest Release
+        #   id: upload-latest
+        #   continue-on-error: true
+        #   if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        #   run: |
+        #     FILES=$(find Releases -type f)
+        #     gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
 
-        - name: 📁 Upload Daily Release
-          id: upload-daily
+        # - name: 📁 Upload Daily Release
+        #   id: upload-daily
+        #   continue-on-error: true
+        #   if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        #   run: |
+        #     FILES=$(find Releases -type f)
+        #     if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+        #       echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
+        #       gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
+        #     else
+        #       echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
+        #       gh release create "${{ env.TAG_NAME }}" $FILES \
+        #         --repo "${GITHUB_REPOSITORY}" \
+        #         --title "${{ env.TAG_NAME }}" \
+        #         --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
+        #         --prerelease \
+        #         --target main
+        #     fi
+
+        - name: 📁 Create/Update Github Latest Release
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
-          run: |
-            FILES=$(find Releases -type f)
-            if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-              echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
-              gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
-            else
-              echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
-              gh release create "${{ env.TAG_NAME }}" $FILES \
-                --repo "${GITHUB_REPOSITORY}" \
-                --title "${{ env.TAG_NAME }}" \
-                --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
-                --prerelease \
-                --target main
-            fi
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "latest"
+            prerelease: false
+            name: "Latest Firmware"
+            body: |
+              Latest successful SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
+
+        - name: 📁 Create/Update Github Daily Release
+          continue-on-error: true
+          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          uses: mini-bomba/create-github-release@v1.2.0
+          with:
+            token: ${{ secrets.gh_token }}
+            tag: "${{ env.TAG_NAME }}"
+            prerelease: true
+            name: "${{ env.TAG_NAME }}"
+            body: |
+              Archive of successful daily SlimeNRF Firmware build. (Automated)
+            files: |
+              Releases/*.hex
+              Releases/*.uf2
+            clear_attachments: false
