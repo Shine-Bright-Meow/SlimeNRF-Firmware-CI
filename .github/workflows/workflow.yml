@@ -587,8 +587,6 @@ jobs:
           shopt -s nocasematch
           if [[ "$repository_url" == "https://github.com/LyallUlric/Stacked-SmolSlime.git" ]]; then
             printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
-          elif [[ "$repository_url" == "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git" ]]; then
-            printf "\n\nCONFIG_DELAY_SLEEP_ON_STATUS=y" >> SlimeVR-Tracker-nRF/prj.conf
           elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git" && "$repository_revision" == "main" && "$sdk_revision" == "v3.1-branch" ]]; then
             sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
             sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
