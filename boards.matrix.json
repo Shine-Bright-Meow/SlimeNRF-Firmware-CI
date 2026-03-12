@@ -1051,7 +1051,7 @@
     "slimevr_tracker_nrf_main": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "main",
-      "profile": "sdk_v3_1_1"
+      "profile": "sdk_v3_2_branch"
     },
     "stacked_smolslime_main": {
       "repository_url": "https://github.com/LyallUlric/Stacked-SmolSlime.git",
