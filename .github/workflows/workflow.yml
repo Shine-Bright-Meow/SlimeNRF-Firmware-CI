@@ -79,8 +79,8 @@ jobs:
           set -euo pipefail
 
           MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
-          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/$MATRIX_FILE" ]; then
-            MATRIX_FILE="SlimeNRF-Firmware-CI/$MATRIX_FILE"
+          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-CI/$MATRIX_FILE" ]; then
+            MATRIX_FILE="SlimeNRF-CI/$MATRIX_FILE"
           fi
 
           MATRIX="$(jq -c '
@@ -211,8 +211,8 @@ jobs:
           mkdir -p data
           MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
 
-          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-Firmware-CI/$MATRIX_FILE" ]; then
-            MATRIX_FILE="SlimeNRF-Firmware-CI/$MATRIX_FILE"
+          if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-CI/$MATRIX_FILE" ]; then
+            MATRIX_FILE="SlimeNRF-CI/$MATRIX_FILE"
           fi
 
           resolve_sha () {
