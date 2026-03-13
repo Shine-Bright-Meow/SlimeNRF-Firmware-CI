@@ -36,7 +36,7 @@ jobs:
 
       - name: 📦 Cache Zephyr SDK
         id: cache-sdk
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/zephyr-sdk
           key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
@@ -53,7 +53,7 @@ jobs:
 
       - name: 📦 Cache Python Venv
         id: cache-venv
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.venv
           key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
@@ -71,7 +71,7 @@ jobs:
       count: ${{ steps.gen.outputs.count }}
     steps:
       - name: 💻 Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: 🧮 Generate Build Matrix from JSON
         id: gen
@@ -185,7 +185,7 @@ jobs:
     steps:
 
       - name: 💻 Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: 🏷️ Generate Daily Tag
         id: daily-tag
@@ -309,7 +309,7 @@ jobs:
 
       - name: 📦 Cache Lookups
         id: cache-lookups
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: data/lookups.json
           key: data-${{ github.run_id }}
@@ -324,7 +324,7 @@ jobs:
     steps:
 
       - name: 💻 Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: 🧰 Cache + Install Apt Dependencies
         id: restore-packages
@@ -338,7 +338,7 @@ jobs:
 
       - name: 📦 Restore Lookups Cache
         id: restore-lookups
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: data/lookups.json
           key: data-${{ github.run_id }}
@@ -346,7 +346,7 @@ jobs:
 
       - name: 📦 Restore Zephyr SDK
         id: restore-zephyr
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ~/zephyr-sdk
           key: zephyr-sdk-${{ env.ZEPHYR_SDK_VERSION }}
@@ -358,7 +358,7 @@ jobs:
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
 
       - name: 💻 Checkout CI Manifest Repo (for west init)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: zephyr-workspace/SlimeNRF-CI
 
@@ -373,7 +373,7 @@ jobs:
 
       - name: 📦 Cache West Workspace (by SDK SHA)
         id: cache-west
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             zephyr-workspace/.west
@@ -387,7 +387,7 @@ jobs:
 
       - name: 📦 Restore Zephyr Python Requirements
         id: restore-pip
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ~/.venv
           key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
@@ -397,7 +397,7 @@ jobs:
       - name: 📦 Restore Python Venv
         id: restore-venv
         if: steps.restore-pip.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ~/.venv
           key: venv-${{ env.ZEPHYR_SDK_VERSION }}-base
@@ -433,7 +433,7 @@ jobs:
       - name: 📦 Save Zephyr Python Requirements
         id: cache-pip
         if: steps.restore-pip.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ~/.venv
           key: venv-pip-${{ env.ZEPHYR_SDK_VERSION }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
@@ -449,7 +449,7 @@ jobs:
 
       - name: 📦 Restore Repository
         id: restore-repository
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
@@ -467,7 +467,7 @@ jobs:
       - name: 📦 Save Repository Cache
         id: cache-repository
         if: steps.restore-repository.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: zephyr-workspace/SlimeVR-Tracker-nRF
           key: firmware-${{ steps.firmware-hash.outputs.firmware_sha }}
@@ -550,7 +550,7 @@ jobs:
       - name: 📦 Restore Custom Boards Cache
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
         id: restore-custom
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
@@ -567,7 +567,7 @@ jobs:
       - name: 📦 Save Custom Boards Cache
         id: cache-custom
         if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) && (steps.restore-custom.outputs.cache-hit != 'true') }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
@@ -631,7 +631,7 @@ jobs:
       - name: 💾 Upload Firmware Artifact
         id: upload-payload
         if: ${{ steps.build-firmware.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: firmware-${{ matrix.boards.index }}
           path: |
@@ -648,11 +648,11 @@ jobs:
       steps:
 
         - name: 💻 Checkout Repository
-          uses: actions/checkout@v5
+          uses: actions/checkout@v6
 
         - name: 📦 Restore Lookups Cache
           id: restore-lookups2
-          uses: actions/cache@v4
+          uses: actions/cache@v5
           with:
             path: data/lookups.json
             key: data-${{ github.run_id }}
@@ -701,7 +701,7 @@ jobs:
         - name: 💾 Upload HEX Artifacts
           id: upload-hex
           continue-on-error: true
-          uses: actions/upload-artifact@v5
+          uses: actions/upload-artifact@v6
           with:
             name: firmware-hex
             path: Releases/*.hex
@@ -709,7 +709,7 @@ jobs:
         - name: 💾 Upload UF2 Artifacts
           id: upload-uf2
           continue-on-error: true
-          uses: actions/upload-artifact@v5
+          uses: actions/upload-artifact@v6
           with:
             name: firmware-uf2
             path: Releases/*.uf2
