@@ -1023,11 +1023,6 @@
     }
   ],
   "sources": {
-    "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch": {
-      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
-      "repository_revision": "main",
-      "profile": "sdk_v3_1_branch"
-    },
     "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "main",
@@ -1056,7 +1051,7 @@
     "stacked_smolslime_main": {
       "repository_url": "https://github.com/LyallUlric/Stacked-SmolSlime.git",
       "repository_revision": "main",
-      "profile": "sdk_v3_1_1"
+      "profile": "sdk_v3_2_branch"
     },
     "slimevr_tracker_nrf_master": {
       "repository_url": "https://github.com/Dqmaged/SlimeVR-Tracker-nRF.git",
