@@ -723,7 +723,7 @@ jobs:
         # - name: 📁 Upload Latest Release
         #   id: upload-latest
         #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
         #   run: |
         #     FILES=$(find Releases -type f)
         #     gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
@@ -731,7 +731,7 @@ jobs:
         # - name: 📁 Upload Daily Release
         #   id: upload-daily
         #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
         #   run: |
         #     FILES=$(find Releases -type f)
         #     if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
@@ -749,7 +749,7 @@ jobs:
 
         - name: 📁 Create/Update Github Latest Release
           continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           uses: mini-bomba/create-github-release@v1.2.0
           with:
             token: ${{ secrets.gh_token }}
@@ -765,7 +765,7 @@ jobs:
 
         - name: 📁 Create/Update Github Daily Release
           continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' }}
+          if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           uses: mini-bomba/create-github-release@v1.2.0
           with:
             token: ${{ secrets.gh_token }}
