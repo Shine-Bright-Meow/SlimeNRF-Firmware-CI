@@ -605,7 +605,7 @@ jobs:
         run: |
           cd zephyr-workspace
 
-          sed -i "/printk(FW_STRING);/a printk(\"Repo: $(echo '${{ matrix.boards.repository_url }}' | sed -E 's#https://github.com/##;s#\.git$##') | Branch: ${{ matrix.boards.repository_revision }} | SDK: ${{ matrix.boards.sdk_revision }}\\\\n\"); printk(\"Build from ${{ github.repository }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
+          sed -i "/printk(FW_STRING);/a printk(\"Repo: $(echo '${{ matrix.boards.repository_url }}' | sed -E 's#https://github.com/##;s#\.git$##')@${{ matrix.boards.repository_revision }} | SDK: ${{ matrix.boards.sdk_revision }}\\\\n\"); printk(\"Build from ${{ github.repository }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
           mkdir SlimeVR-Tracker-nRF/build
 
