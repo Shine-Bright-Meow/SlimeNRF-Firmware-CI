@@ -107,7 +107,7 @@
     },
     {
       "boardname": "nrf52840dongle/nrf52840",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver"
     },
@@ -119,7 +119,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch",
+      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
       "filename": "SlimeNRF_XIAO_Receiver"
     },
@@ -509,7 +509,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840",
-      "source": "slimevr_tracker_nrf_main",
+      "source": "slimevr_tracker_nrf_main___sdk_v3_1_1",
       "type": "tracker",
       "defaults": {
         "extraaction": "enabled"
@@ -539,7 +539,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840/sense",
-      "source": "slimevr_tracker_nrf_main",
+      "source": "slimevr_tracker_nrf_main___sdk_v3_1_1",
       "type": "tracker",
       "defaults": {
         "clk": "disabled",
@@ -1023,6 +1023,11 @@
     }
   ],
   "sources": {
+    "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_1_branch"
+    },
     "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "main",
@@ -1047,6 +1052,11 @@
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "main",
       "profile": "sdk_v3_2_branch"
+    },
+    "slimevr_tracker_nrf_main___sdk_v3_1_1": {
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
+      "repository_revision": "main",
+      "profile": "sdk_v3_1_1"
     },
     "stacked_smolslime_main": {
       "repository_url": "https://github.com/LyallUlric/Stacked-SmolSlime.git",
