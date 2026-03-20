@@ -1038,8 +1038,8 @@
         ]
       },
       "name": {
-        "board": "StackedTest",
-        "bus": "I2C"
+        "board": "ProMicro",
+        "bus": "StackTestI2C"
       },
       "name_style": "combined"
     },
@@ -1060,8 +1060,8 @@
         ]
       },
       "name": {
-        "board": "StackedTest",
-        "bus": "SPI"
+        "board": "ProMicro",
+        "bus": "StackedTestSPI"
       },
       "name_style": "combined"
     },
