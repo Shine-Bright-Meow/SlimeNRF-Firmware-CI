@@ -541,7 +541,7 @@ jobs:
           fi
 
       - name: 🔎 Retrieve Custom Boards Commit
-        if: ${{ (matrix.boards.type == 'tracker') && (contains(matrix.boards.filename, 'Stacked')) }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao'))) }}
         id: custom-hash
         shell: bash
         run: |
