@@ -1020,6 +1020,72 @@
         "bus": "SPI"
       },
       "name_style": "noclk"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/stackedi2c",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "StackedTest",
+        "bus": "I2C"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/stackedspi",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "StackedTest",
+        "bus": "SPI"
+      },
+      "name_style": "combined"
+    },
+    {
+      "boardname": "promicro_uf2/nrf52840/bao",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "enabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ProMicro",
+        "bus": "Bao"
+      },
+      "name_style": "combined"
     }
   ],
   "sources": {
