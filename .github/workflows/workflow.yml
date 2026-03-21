@@ -641,11 +641,11 @@ jobs:
         if: ${{ steps.build-firmware.outcome == 'success' }}
         uses: actions/upload-artifact@v7
         with:
-          name: firmware-${{ matrix.boards.index }}
+          name: ${{ matrix.boards.filename }}
+          if-no-files-found: warn
           path: |
             zephyr-workspace/Releases-${{ matrix.boards.index }}/*.uf2
             zephyr-workspace/Releases-${{ matrix.boards.index }}/*.hex
-          retention-days: 1
 
   collector:
       needs: [generate_matrix, build]
@@ -705,22 +705,6 @@ jobs:
             find collected-firmware -type f \( -name "*.uf2" -o -name "*.hex" \) -exec cp {} Releases/ \;
             echo "Firmware files collected:"
             ls -lah Releases
-
-        - name: 💾 Upload HEX Artifacts
-          id: upload-hex
-          continue-on-error: true
-          uses: actions/upload-artifact@v7
-          with:
-            name: firmware-hex
-            path: Releases/*.hex
-
-        - name: 💾 Upload UF2 Artifacts
-          id: upload-uf2
-          continue-on-error: true
-          uses: actions/upload-artifact@v7
-          with:
-            name: firmware-uf2
-            path: Releases/*.uf2
 
         # - name: 🔑 Authenticate GitHub CLI
         #   id: gh-auth
