@@ -1039,7 +1039,7 @@
       },
       "name": {
         "board": "ProMicro",
-        "bus": "StackTestI2C"
+        "bus": "StackedTestI2C"
       },
       "name_style": "combined"
     },
