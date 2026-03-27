@@ -605,11 +605,11 @@ jobs:
             sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
             sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
             sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
-          elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git" && "$boardname" == *stacked* ]]; then
+          elif [[ "$boardname" == *stacked* ]]; then
             sed -i '/^[[:space:]]*#define[[:space:]]*DFU_EXISTS[[:space:]]*CONFIG_BUILD_OUTPUT_UF2[[:space:]]*||[[:space:]]*CONFIG_BOARD_HAS_NRF5_BOOTLOADER/i #include <zephyr/drivers/gpio.h>\n#define ZEPHYR_USER_NODE DT_PATH(zephyr_user)\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, pwr_gpios)\nstatic const struct gpio_dt_spec pwr = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, pwr_gpios);\n#endif\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, gnd_gpios)\nstatic const struct gpio_dt_spec gnd = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, gnd_gpios);\n#endif' SlimeVR-Tracker-nRF/src/main.c
             sed -i '/^[[:space:]]*#ifdef[[:space:]]*NRF_RESET/i #if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, pwr_gpios)\n    gpio_pin_configure_dt(&pwr, GPIO_OUTPUT_ACTIVE);\n    gpio_pin_set_dt(&pwr, 1);\n#endif\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, gnd_gpios)\n    gpio_pin_configure_dt(&gnd, GPIO_OUTPUT_ACTIVE);\n    gpio_pin_set_dt(&gnd, 0);\n#endif' SlimeVR-Tracker-nRF/src/main.c
             cp -rT custom/stacked SlimeVR-Tracker-nRF
-          elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git" && "$boardname" == "promicro_uf2/nrf52840/bao" ]]; then
+          elif [[ "$boardname" == "promicro_uf2/nrf52840/bao" ]]; then
             cp -rT custom/bao SlimeVR-Tracker-nRF
           fi
           shopt -u nocasematch
