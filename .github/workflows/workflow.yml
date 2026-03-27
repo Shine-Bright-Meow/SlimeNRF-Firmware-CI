@@ -12,7 +12,7 @@ on:
     - cron: "30 */12 * * *"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.ref }}
   cancel-in-progress: true
 
 permissions: write-all
@@ -74,6 +74,8 @@ jobs:
     steps:
       - name: 💻 Checkout Repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: 🧮 Generate Build Matrix from JSON
         id: gen
@@ -188,6 +190,8 @@ jobs:
 
       - name: 💻 Checkout Repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: 🏷️ Generate Daily Tag
         id: daily-tag
@@ -197,6 +201,7 @@ jobs:
 
       - name: 🏷️ Create or Update Tag
         id: tag-management
+        if: github.event_name != 'pull_request'
         run: |
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
 
@@ -246,7 +251,7 @@ jobs:
 
           # Resolve CI Repository Hash
           CI_URL="https://github.com/${GITHUB_REPOSITORY}"
-          CI_BRANCH="${GITHUB_REF_NAME}"
+          CI_BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
           CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
           CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
           CI_MESSAGE=$(git log -1 --pretty=%B)
@@ -327,6 +332,8 @@ jobs:
 
       - name: 💻 Checkout Repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: 🧰 Cache + Install Apt Dependencies
         id: restore-packages
@@ -363,6 +370,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: zephyr-workspace/SlimeNRF-CI
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
 
       - name: 🔎 Lookup SDK Hash
         id: sdk-hash
@@ -657,6 +666,8 @@ jobs:
 
         - name: 💻 Checkout Repository
           uses: actions/checkout@v6
+          with:
+            ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
         - name: 📦 Restore Lookups Cache
           id: restore-lookups2
