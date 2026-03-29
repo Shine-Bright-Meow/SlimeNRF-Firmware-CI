@@ -1125,7 +1125,7 @@
       "profile": "sdk_jiting_esb"
     },
     "slimevr_tracker_nrf_receiver_main": {
-      "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
+      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "main",
       "profile": "sdk_v3_3_0_preview3_branch"
     },
