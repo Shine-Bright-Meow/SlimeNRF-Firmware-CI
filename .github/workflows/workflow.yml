@@ -581,12 +581,15 @@ jobs:
           shopt -s nocasematch
           if [[ "$repository_url" == "https://github.com/LyallUlric/Stacked-SmolSlime.git" ]]; then
             printf "\n\nCONFIG_SENSOR_USE_6_SIDE_CALIBRATION=y" >> SlimeVR-Tracker-nRF/prj.conf
-          elif [[ "$repository_url" == "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git" && "$repository_revision" == "main" && ( "$boardname" == *xiao_ble* || "$boardname" == "nrf52840dongle/nrf52840" ) ]]; then
+          elif [[ "$repository_url" == *"https://github.com/SlimeVR/SlimeVR-Tracker-nRF"* && "$repository_revision" == "main" && ( "$boardname" == *xiao_ble* || "$boardname" == "nrf52840dongle/nrf52840" ) ]]; then
             # printf "\n\nCONFIG_SHARED_INTERRUPTS=y" >> SlimeVR-Tracker-nRF/prj.conf
             # sed -i 's/^[[:space:]]*#\?[[:space:]]*CONFIG_USB_CDC_ACM=y/CONFIG_USB_CDC_ACM=n/' SlimeVR-Tracker-nRF/prj.conf
-            sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
-            sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
-            sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
+            # sed -i 's/^#CONFIG_NRFX_TIMER1=y/CONFIG_NRFX_TIMER1=y/' SlimeVR-Tracker-nRF/prj.conf
+            # sed -i 's|^[[:space:]]*//[[:space:]]*\(IRQ_DIRECT_CONNECT(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
+            # sed -i 's|^[[:space:]]*//[[:space:]]*\(irq_enable(TIMER1_IRQn.*\)|\1|' SlimeVR-Tracker-nRF/src/connection/timer.c
+            sed -i 's|^\([[:space:]]*-[[:space:]]*\)usbd[[:space:]]*$|\1usb_device|' zephyr/boards/nordic/nrf52840dongle/nrf52840dongle_nrf52840.yaml
+            sed -i 's|^\([[:space:]]*-[[:space:]]*\)usbd[[:space:]]*$|\1usb_device|' zephyr/boards/seeed/xiao_ble/xiao_ble.yaml
+            sed -i 's|^\([[:space:]]*-[[:space:]]*\)usbd[[:space:]]*$|\1usb_device|' zephyr/boards/seeed/xiao_ble/xiao_ble_nrf52840_sense.yaml
           elif [[ "$boardname" == *stacked* ]]; then
             sed -i '/^[[:space:]]*#define[[:space:]]*DFU_EXISTS[[:space:]]*CONFIG_BUILD_OUTPUT_UF2[[:space:]]*||[[:space:]]*CONFIG_BOARD_HAS_NRF5_BOOTLOADER/i #include <zephyr/drivers/gpio.h>\n#define ZEPHYR_USER_NODE DT_PATH(zephyr_user)\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, pwr_gpios)\nstatic const struct gpio_dt_spec pwr = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, pwr_gpios);\n#endif\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, gnd_gpios)\nstatic const struct gpio_dt_spec gnd = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, gnd_gpios);\n#endif' SlimeVR-Tracker-nRF/src/main.c
             sed -i '/^[[:space:]]*#ifdef[[:space:]]*NRF_RESET/i #if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, pwr_gpios)\n    gpio_pin_configure_dt(&pwr, GPIO_OUTPUT_ACTIVE);\n    gpio_pin_set_dt(&pwr, 1);\n#endif\n#if DT_NODE_HAS_PROP(ZEPHYR_USER_NODE, gnd_gpios)\n    gpio_pin_configure_dt(&gnd, GPIO_OUTPUT_ACTIVE);\n    gpio_pin_set_dt(&gnd, 0);\n#endif' SlimeVR-Tracker-nRF/src/main.c
