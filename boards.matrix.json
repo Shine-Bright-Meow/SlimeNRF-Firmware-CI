@@ -116,7 +116,7 @@
     },
     {
       "boardname": "nrf52840dk/nrf52840",
-      "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
+      "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
       "filename": "SlimeNRF_nRF52840dk_Receiver"
     },
