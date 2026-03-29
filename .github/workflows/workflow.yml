@@ -328,13 +328,13 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/zephyr-sdk
-          key: zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }} 
+          key: zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }}
 
       - name: 🪁 Install Zephyr SDK
         id: install-zephyr
         if: steps.cache-sdk.outputs.cache-hit != 'true'
         run: |
-          wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ matrix.boards.zephyr_sdk_version }} /zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }} _linux-x86_64_minimal.tar.xz
+          wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ matrix.boards.zephyr_sdk_version }}/zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }}_linux-x86_64_minimal.tar.xz
           tar xf zephyr-sdk_linux-x86_64_minimal.tar.xz -C ~/
           rm -rf ~/zephyr-sdk
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
