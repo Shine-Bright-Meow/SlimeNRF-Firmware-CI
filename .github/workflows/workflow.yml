@@ -71,7 +71,7 @@ jobs:
                   | if $p == null then
                       error("Unknown profile key in source: \($s.profile)")
                     else
-                      ($v + $s + $p + {zephyr_sdk_version: $s.zephyr_sdk_version} | del(.source, .profile))
+                      ($v + $s + $p + {zephyr_sdk_version: $p.zephyr_sdk_version} | del(.source, .profile))
                     end
                 end;
 
