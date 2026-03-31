@@ -524,7 +524,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840",
-      "source": "slimevr_tracker_nrf_main___sdk_v3_1_1",
+      "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
       "defaults": {
         "extraaction": "enabled"
@@ -554,7 +554,7 @@
     },
     {
       "boardname": "xiao_ble/nrf52840/sense",
-      "source": "slimevr_tracker_nrf_main___sdk_v3_1_1",
+      "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
       "defaults": {
         "clk": "disabled",
