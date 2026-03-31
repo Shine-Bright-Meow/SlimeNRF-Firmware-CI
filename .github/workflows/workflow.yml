@@ -384,7 +384,7 @@ jobs:
       - name: 📦 Restore Python Venv
         if: steps.restore-pip.outputs.cache-hit != 'true'
         id: restore-venv
-        uses: actions/restore@v5
+        uses: actions/cache/restore@v5
         with:
           path: ~/.venv
           key: venv-${{ matrix.boards.zephyr_sdk_version }}
