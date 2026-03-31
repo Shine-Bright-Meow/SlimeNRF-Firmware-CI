@@ -380,9 +380,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ~/.venv
-          key: venv-pip-${{ matrix.boards.zephyr_sdk_version }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
-          restore-keys: |
-            venv-pip-${{ matrix.boards.zephyr_sdk_version }}
+          key: venv-pip-${{ matrix.boards.zephyr_sdk_version }}
 
       - name: 📦 Cache Python Venv
         id: cache-venv
@@ -429,7 +427,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ~/.venv
-          key: venv-pip-${{ matrix.boards.zephyr_sdk_version }}-${{ hashFiles('zephyr-workspace/zephyr/scripts/requirements.txt') }}
+          key: venv-pip-${{ matrix.boards.zephyr_sdk_version }}
 
       - name: 🔎 Lookup Firmware Hash
         id: firmware-hash
