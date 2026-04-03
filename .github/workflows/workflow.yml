@@ -538,7 +538,7 @@ jobs:
           fi
 
       - name: 🔎 Retrieve Custom Boards Commit
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao'))) }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) }}
         id: custom-hash
         shell: bash
         run: |
@@ -547,7 +547,7 @@ jobs:
           echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Custom Boards Cache
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao'))) }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) }}
         id: restore-custom
         uses: actions/cache@v5
         with:
@@ -556,7 +556,7 @@ jobs:
 
       - name: 📥 Clone Custom Boards Repository
         id: clone-custom
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
         run: |
           cd zephyr-workspace
           sudo rm -rf custom
@@ -564,7 +564,7 @@ jobs:
 
       - name: 📦 Save Custom Boards Cache
         id: cache-custom
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
         uses: actions/cache/save@v5
         with:
           path: zephyr-workspace/custom
@@ -600,6 +600,8 @@ jobs:
             cp -rT custom/stacked SlimeVR-Tracker-nRF
           elif [[ "$boardname" == "promicro_uf2/nrf52840/bao" ]]; then
             cp -rT custom/bao SlimeVR-Tracker-nRF
+          elif [[ "$boardname" == "promicro_uf2/nrf52840/chrysalis" ]]; then
+            cp -rT custom/chrysalis SlimeVR-Tracker-nRF
           fi
           shopt -u nocasematch
 
