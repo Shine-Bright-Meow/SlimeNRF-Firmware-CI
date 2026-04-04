@@ -70,157 +70,183 @@
       "boardname": "holyiot_21017/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_dev",
       "type": "receiver",
-      "filename": "SlimeNRF_Holyiot_Dongle_Receiver_JitingCat"
+      "filename": "SlimeNRF_Holyiot_Dongle_Receiver_JitingCat",
+      "fileformat": "hex"
     },
     {
       "boardname": "nrf52840dongle/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_dev",
       "type": "receiver",
-      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver_JitingCat"
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver_JitingCat",
+      "fileformat": "hex"
     },
     {
       "boardname": "promicro_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_dev",
       "type": "receiver",
-      "filename": "SlimeNRF_ProMicro_Receiver_JitingCat"
+      "filename": "SlimeNRF_ProMicro_Receiver_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "butterfly_p1_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P1_Receiver"
+      "filename": "SlimeNRF_Butterfly_P1_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "butterfly_p2_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P2_Receiver"
+      "filename": "SlimeNRF_Butterfly_P2_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "butterfly_p3/nrf52820",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P3_Receiver"
+      "filename": "SlimeNRF_Butterfly_P3_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "etee_dongle_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_etee_Receiver"
+      "filename": "SlimeNRF_etee_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "holyiot_21017/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_Holyiot_Dongle_Receiver"
+      "filename": "SlimeNRF_Holyiot_Dongle_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "nrf52840dk/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_nRF52840dk_Receiver"
+      "filename": "SlimeNRF_nRF52840dk_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "nrf52840dongle/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
-      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver"
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "promicro_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
-      "filename": "SlimeNRF_ProMicro_Receiver"
+      "filename": "SlimeNRF_ProMicro_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main__sdk_v3_1_branch",
       "type": "receiver",
-      "filename": "SlimeNRF_XIAO_Receiver"
+      "filename": "SlimeNRF_XIAO_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "butterfly_p1_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P1_TDMA_Receiver"
+      "filename": "SlimeNRF_Butterfly_P1_TDMA_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "butterfly_p2_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_Butterfly_P2_TDMA_Receiver"
+      "filename": "SlimeNRF_Butterfly_P2_TDMA_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "etee_dongle_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_etee_TDMA_Receiver"
+      "filename": "SlimeNRF_etee_TDMA_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "holyiot_21017/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_Holyiot_Dongle_TDMA_Receiver"
+      "filename": "SlimeNRF_Holyiot_Dongle_TDMA_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "nrf52840dk/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_nRF52840dk_TDMA_Receiver"
+      "filename": "SlimeNRF_nRF52840dk_TDMA_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "nrf52840dongle/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_Nordic_eByte_Dongle_TDMA_Receiver"
+      "filename": "SlimeNRF_Nordic_eByte_Dongle_TDMA_Receiver",
+      "fileformat": "hex"
     },
     {
       "boardname": "promicro_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_ProMicro_TDMA_Receiver"
+      "filename": "SlimeNRF_ProMicro_TDMA_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
-      "filename": "SlimeNRF_XIAO_TDMA_Receiver"
+      "filename": "SlimeNRF_XIAO_TDMA_Receiver",
+      "fileformat": "uf2"
     },
     {
       "boardname": "mochi_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_Mochi_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_Mochi_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/chrysalis",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_Chrysalis_ProMicro_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_Chrysalis_ProMicro_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/default_i2c",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_I2C_ProMicro_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_I2C_ProMicro_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/default_spi",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_SPI_ProMicro_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_SPI_ProMicro_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/i2c",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_I2C_StackedSmol_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_I2C_StackedSmol_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/spi",
       "source": "slimevr_tracker_nrf_dev",
       "type": "tracker",
-      "filename": "SlimeNRF_Tracker_Mag_SPI_StackedSmol_JitingCat"
+      "filename": "SlimeNRF_Tracker_Mag_SPI_StackedSmol_JitingCat",
+      "fileformat": "uf2"
     },
     {
       "boardname": "mochi_uf2/nrf52833",
@@ -241,7 +267,8 @@
       "name": {
         "board": "Mochi"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840",
@@ -262,7 +289,8 @@
       "name": {
         "board": "ProMicro"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/i2c",
@@ -293,7 +321,8 @@
         "board": "ProMicro",
         "bus": "I2C"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/smspi",
@@ -321,7 +350,8 @@
         "board": "ProMicro",
         "bus": "smSPI"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/spi",
@@ -352,7 +382,8 @@
         "board": "ProMicro",
         "bus": "SPI"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimenrf_r3/nrf52840/uf2",
@@ -373,7 +404,8 @@
       "name": {
         "board": "R3"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p1_uf2/nrf52833",
@@ -394,7 +426,8 @@
       "name": {
         "board": "SlimevrMini"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p2_uf2/nrf52833",
@@ -415,7 +448,8 @@
       "name": {
         "board": "SlimevrMini2"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p3r6_uf2/nrf52833",
@@ -436,7 +470,8 @@
       "name": {
         "board": "SlimevrMini3_R6"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p3r7_uf2/nrf52833",
@@ -457,7 +492,8 @@
       "name": {
         "board": "SlimevrMini3_R7"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4_uf2/nrf52833",
@@ -478,7 +514,8 @@
       "name": {
         "board": "SlimevrMini4"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4r11_uf2/nrf52833",
@@ -499,7 +536,8 @@
       "name": {
         "board": "SlimevrMini4R11"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4r9_uf2/nrf52833",
@@ -520,7 +558,8 @@
       "name": {
         "board": "SlimevrMini4R9"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840",
@@ -550,7 +589,8 @@
       "name": {
         "board": "XIAO"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840/sense",
@@ -574,7 +614,8 @@
       "name": {
         "board": "XIAO_Sense"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/chrysalis",
@@ -599,7 +640,8 @@
         "board": "ProMicro",
         "bus": "Chrysalis"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "mochi_uf2/nrf52833",
@@ -620,7 +662,8 @@
       "name": {
         "board": "Mochi"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840",
@@ -641,7 +684,8 @@
       "name": {
         "board": "ProMicro"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/chrysalis",
@@ -666,7 +710,8 @@
         "board": "ProMicro",
         "bus": "Chrysalis"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/i2c",
@@ -697,7 +742,8 @@
         "board": "ProMicro",
         "bus": "I2C"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/smspi",
@@ -725,7 +771,8 @@
         "board": "ProMicro",
         "bus": "smSPI"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/spi",
@@ -756,7 +803,8 @@
         "board": "ProMicro",
         "bus": "SPI"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimenrf_r3/nrf52840/uf2",
@@ -777,7 +825,8 @@
       "name": {
         "board": "R3"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p1_uf2/nrf52833",
@@ -798,7 +847,8 @@
       "name": {
         "board": "SlimevrMini"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p2_uf2/nrf52833",
@@ -819,7 +869,8 @@
       "name": {
         "board": "SlimevrMini2"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p3r6_uf2/nrf52833",
@@ -840,7 +891,8 @@
       "name": {
         "board": "SlimevrMini3_R6"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p3r7_uf2/nrf52833",
@@ -861,7 +913,8 @@
       "name": {
         "board": "SlimevrMini3_R7"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4_uf2/nrf52833",
@@ -882,7 +935,8 @@
       "name": {
         "board": "SlimevrMini4"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4r11_uf2/nrf52833",
@@ -903,7 +957,8 @@
       "name": {
         "board": "SlimevrMini4R11"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "slimevrmini_p4r9_uf2/nrf52833",
@@ -924,7 +979,8 @@
       "name": {
         "board": "SlimevrMini4R9"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840",
@@ -954,7 +1010,8 @@
       "name": {
         "board": "XIAO"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "xiao_ble/nrf52840/sense",
@@ -978,7 +1035,8 @@
       "name": {
         "board": "XIAO_Sense"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/i2c",
@@ -1006,7 +1064,8 @@
         "board": "StackedSmol",
         "bus": "I2C"
       },
-      "name_style": "noclk"
+      "name_style": "noclk",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/spi",
@@ -1034,7 +1093,8 @@
         "board": "StackedSmol",
         "bus": "SPI"
       },
-      "name_style": "noclk"
+      "name_style": "noclk",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/stackedi2c",
@@ -1056,7 +1116,8 @@
         "board": "ProMicro",
         "bus": "StackedTestI2C"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/stackedspi",
@@ -1078,7 +1139,8 @@
         "board": "ProMicro",
         "bus": "StackedTestSPI"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     },
     {
       "boardname": "promicro_uf2/nrf52840/bao",
@@ -1100,7 +1162,8 @@
         "board": "ProMicro",
         "bus": "Bao"
       },
-      "name_style": "combined"
+      "name_style": "combined",
+      "fileformat": "uf2"
     }
   ],
   "sources": {

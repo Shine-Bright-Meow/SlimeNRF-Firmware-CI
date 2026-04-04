@@ -625,15 +625,22 @@ jobs:
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
           UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
 
-          if [ -f "$HEX_SRC" ]; then
-            mv "$HEX_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.hex"
-          else
-            echo "Missing expected HEX output: $HEX_SRC" >&2
-            exit 1
-          fi
+          FORMAT="${{ matrix.boards.fileformat }}"
 
-          if [ -f "$UF2_SRC" ]; then
-            mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
+          if [ "$FORMAT" = "hex" ]; then
+            if [ -f "$HEX_SRC" ]; then
+              mv "$HEX_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.hex"
+            else
+              echo "Missing expected HEX output: $HEX_SRC" >&2
+              exit 1
+            fi
+          else
+            if [ -f "$UF2_SRC" ]; then
+              mv "$UF2_SRC" "Releases-${{ matrix.boards.index }}/${{ matrix.boards.filename }}.uf2"
+            else
+              echo "Missing expected UF2 output: $UF2_SRC" >&2
+              exit 1
+            fi
           fi
 
       - name: 💾 Upload Firmware Artifact
