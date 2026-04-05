@@ -399,13 +399,14 @@ jobs:
 
       - name: 🐍 Setup Python Venv + West
         if: ${{ steps.restore-pip.outputs.cache-hit != 'true' && steps.restore-venv.outputs.cache-hit != 'true' }}
+        id: setup-venv
         run: |
           python3 -m venv ~/.venv
           ~/.venv/bin/pip install west ninja
 
       - name: 📦 Save Python Venv
         id: cache-venv
-        if: steps.restore-venv.outputs.cache-hit != 'true'
+        if: ${{ steps.restore-venv.outputs.cache-hit != 'true' && steps.setup-venv.outcome == 'success'}}
         uses: actions/cache/save@v5
         with:
           path: ~/.venv
