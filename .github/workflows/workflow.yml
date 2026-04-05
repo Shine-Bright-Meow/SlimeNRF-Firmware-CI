@@ -317,28 +317,36 @@ jobs:
 
       - name: 📦 Restore Lookups Cache
         id: restore-lookups
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: data/lookups.json
           key: data-${{ github.run_id }}
           fail-on-cache-miss: true
 
-      - name: 📦 Cache Zephyr SDK
-        id: cache-sdk
-        uses: actions/cache@v5
+      - name: 📦 Restore Zephyr SDK
+        id: restore-sdk
+        uses: actions/cache/restore@v5
         with:
           path: ~/zephyr-sdk
           key: zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }}
 
       - name: 🪁 Install Zephyr SDK
         id: install-zephyr
-        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        if: steps.restore-sdk.outputs.cache-hit != 'true'
         run: |
           wget -q -O zephyr-sdk_linux-x86_64_minimal.tar.xz https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v${{ matrix.boards.zephyr_sdk_version }}/zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }}_linux-x86_64_minimal.tar.xz
           tar xf zephyr-sdk_linux-x86_64_minimal.tar.xz -C ~/
           rm -rf ~/zephyr-sdk
           mv ~/zephyr-sdk-*/ ~/zephyr-sdk
           ~/zephyr-sdk/setup.sh -c -t arm-zephyr-eabi
+
+      - name: 📦 Save Zephyr SDK
+        id: cache-sdk
+        if: steps.restore-sdk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/zephyr-sdk
+          key: zephyr-sdk-${{ matrix.boards.zephyr_sdk_version }}
 
       - name: 🪁 Register Zephyr SDK
         id: register-zephyr
@@ -360,9 +368,9 @@ jobs:
           sha=$(jq -r --arg key "$key" '.sdk[$key]' data/lookups.json)
           echo "sdk_sha=$sha" >> "$GITHUB_OUTPUT"
 
-      - name: 📦 Cache West Workspace (by SDK SHA)
-        id: cache-west
-        uses: actions/cache@v5
+      - name: 📦 Restore West Workspace (by SDK SHA)
+        id: restore-west
+        uses: actions/cache/restore@v5
         with:
           path: |
             zephyr-workspace/.west
@@ -414,13 +422,28 @@ jobs:
           mkdir -p zephyr-workspace
           cd zephyr-workspace
 
-          if [ "${{ steps.cache-west.outputs.cache-hit }}" != "true" ]; then
+          if [ "${{ steps.restore-west.outputs.cache-hit }}" != "true" ]; then
             sudo rm -rf .west zephyr nrf modules nrfxlib bootloader tools
             west init -l SlimeNRF-CI
             west update --narrow -o=--depth=1
           fi
 
           west zephyr-export
+
+      - name: 📦 Save West Workspace (by SDK SHA)
+        id: cache-west
+        if: steps.restore-west.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            zephyr-workspace/.west
+            zephyr-workspace/zephyr
+            zephyr-workspace/nrf
+            zephyr-workspace/modules
+            zephyr-workspace/nrfxlib
+            zephyr-workspace/bootloader
+            zephyr-workspace/tools
+          key: west-workspace-${{ matrix.boards.zephyr_sdk_version }}-${{ steps.sdk-hash.outputs.sdk_sha }}
 
       - name: 🐍 Install Zephyr Python Requirements
         id: install-pip-requirements
@@ -549,7 +572,7 @@ jobs:
       - name: 📦 Restore Custom Boards Cache
         if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) }}
         id: restore-custom
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: zephyr-workspace/custom
           key: custom-${{ steps.custom-hash.outputs.sha }}
@@ -669,7 +692,7 @@ jobs:
 
         - name: 📦 Restore Lookups Cache
           id: restore-lookups2
-          uses: actions/cache@v5
+          uses: actions/cache/restore@v5
           with:
             path: data/lookups.json
             key: data-${{ github.run_id }}
