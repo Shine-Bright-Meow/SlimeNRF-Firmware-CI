@@ -715,66 +715,66 @@ jobs:
             echo "Firmware files collected:"
             ls -lah Releases
 
-        # - name: 🔑 Authenticate GitHub CLI
-        #   id: gh-auth
-        #   run: |
-        #     gh auth login --with-token <<< "${{ secrets.gh_token }}"
+        - name: 🔑 Authenticate GitHub CLI
+          id: gh-auth
+          run: |
+            gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
-        # - name: 📁 Upload Latest Release
-        #   id: upload-latest
-        #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
-        #   run: |
-        #     FILES=$(find Releases -type f)
-        #     gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
-
-        # - name: 📁 Upload Daily Release
-        #   id: upload-daily
-        #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
-        #   run: |
-        #     FILES=$(find Releases -type f)
-        #     if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-        #       echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
-        #       gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
-        #     else
-        #       echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
-        #       gh release create "${{ env.TAG_NAME }}" $FILES \
-        #         --repo "${GITHUB_REPOSITORY}" \
-        #         --title "${{ env.TAG_NAME }}" \
-        #         --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
-        #         --prerelease \
-        #         --target main
-        #     fi
-
-        - name: 📁 Create/Update Github Latest Release
+        - name: 📁 Upload Latest Release
+          id: upload-latest
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
-          uses: mini-bomba/create-github-release@v1.2.0
-          with:
-            token: ${{ secrets.gh_token }}
-            tag: "latest"
-            prerelease: false
-            name: "Latest Firmware"
-            body: |
-              Latest successful SlimeNRF Firmware build. (Automated)
-            files: |
-              Releases/*.hex
-              Releases/*.uf2
-            clear_attachments: false
+          run: |
+            FILES=$(find Releases -type f)
+            gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
 
-        - name: 📁 Create/Update Github Daily Release
+        - name: 📁 Upload Daily Release
+          id: upload-daily
           continue-on-error: true
           if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
-          uses: mini-bomba/create-github-release@v1.2.0
-          with:
-            token: ${{ secrets.gh_token }}
-            tag: "${{ env.TAG_NAME }}"
-            prerelease: true
-            name: "${{ env.TAG_NAME }}"
-            body: |
-              Archive of successful daily SlimeNRF Firmware build. (Automated)
-            files: |
-              Releases/*.hex
-              Releases/*.uf2
-            clear_attachments: false
+          run: |
+            FILES=$(find Releases -type f)
+            if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+              echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
+              gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
+            else
+              echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
+              gh release create "${{ env.TAG_NAME }}" $FILES \
+                --repo "${GITHUB_REPOSITORY}" \
+                --title "${{ env.TAG_NAME }}" \
+                --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
+                --prerelease \
+                --target main
+            fi
+
+        # - name: 📁 Create/Update Github Latest Release
+        #   continue-on-error: true
+        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
+        #   uses: mini-bomba/create-github-release@v1.2.0
+        #   with:
+        #     token: ${{ secrets.gh_token }}
+        #     tag: "latest"
+        #     prerelease: false
+        #     name: "Latest Firmware"
+        #     body: |
+        #       Latest successful SlimeNRF Firmware build. (Automated)
+        #     files: |
+        #       Releases/*.hex
+        #       Releases/*.uf2
+        #     clear_attachments: false
+
+        # - name: 📁 Create/Update Github Daily Release
+        #   continue-on-error: true
+        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
+        #   uses: mini-bomba/create-github-release@v1.2.0
+        #   with:
+        #     token: ${{ secrets.gh_token }}
+        #     tag: "${{ env.TAG_NAME }}"
+        #     prerelease: true
+        #     name: "${{ env.TAG_NAME }}"
+        #     body: |
+        #       Archive of successful daily SlimeNRF Firmware build. (Automated)
+        #     files: |
+        #       Releases/*.hex
+        #       Releases/*.uf2
+        #     clear_attachments: false
