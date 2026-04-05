@@ -688,6 +688,7 @@ jobs:
             zephyr-workspace/Releases-${{ matrix.boards.index }}/*.hex
 
   collector:
+      if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
       needs: [generate_matrix, build]
       continue-on-error: true
       env:
@@ -756,7 +757,6 @@ jobs:
         - name: 📁 Upload Latest Release
           id: upload-latest
           continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           run: |
             FILES=$(find Releases -type f)
 
@@ -765,7 +765,6 @@ jobs:
         - name: 📁 Upload Daily Release
           id: upload-daily
           continue-on-error: true
-          if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           run: |
             FILES=$(find Releases -type f)
             
@@ -779,7 +778,6 @@ jobs:
 
         # - name: 📁 Create/Update Github Latest Release
         #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
         #     token: ${{ secrets.gh_token }}
@@ -795,7 +793,6 @@ jobs:
 
         # - name: 📁 Create/Update Github Daily Release
         #   continue-on-error: true
-        #   if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
         #     token: ${{ secrets.gh_token }}
