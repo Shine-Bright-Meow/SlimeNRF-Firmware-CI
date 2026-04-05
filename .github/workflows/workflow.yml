@@ -406,7 +406,7 @@ jobs:
 
       - name: 📦 Save Python Venv
         id: cache-venv
-        if: ${{ steps.restore-venv.outputs.cache-hit != 'true' && steps.setup-venv.outcome == 'success'}}
+        if: ${{ steps.restore-venv.outputs.cache-hit != 'true' && steps.setup-venv.outcome == 'success' }}
         uses: actions/cache/save@v5
         with:
           path: ~/.venv
