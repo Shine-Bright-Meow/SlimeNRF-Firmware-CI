@@ -167,6 +167,7 @@ jobs:
         id: daily-tag
         run: |
           TAG_NAME="daily-$(date -u +'%Y-%m-%d-%p' | tr 'A-Z' 'a-z')"
+
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create or Update Tag
@@ -186,6 +187,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p data
+
           MATRIX_FILE="${{ env.BOARD_MATRIX_FILE }}"
 
           if [ ! -f "$MATRIX_FILE" ] && [ -f "SlimeNRF-CI/$MATRIX_FILE" ]; then
@@ -219,12 +221,12 @@ jobs:
           }
           echo "{}" > data/lookups.json
 
-          # Resolve CI Repository Hash
           CI_URL="https://github.com/${GITHUB_REPOSITORY}"
           CI_BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
           CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
           CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
           CI_MESSAGE=$(git log -1 --pretty=%B)
+
           jq \
           --arg url "$CI_URL" \
           --arg branch "$CI_BRANCH" \
@@ -241,7 +243,6 @@ jobs:
             data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
-          # Resolve SDK Hashes
           jq -r '.profiles[] | "\(.sdk_url) \(.sdk_revision)"' "$MATRIX_FILE" \
           | sort -u | while read url rev; do
             sha=$(resolve_sha "$url" "$rev")
@@ -254,7 +255,6 @@ jobs:
             mv data/tmp.json data/lookups.json
           done
 
-          # Resolve Firmware Repository Hashes
           jq -r '.sources[] | "\(.repository_url) \(.repository_revision)"' "$MATRIX_FILE" \
           | sort -u | while read url rev; do
             sha=$(resolve_sha "$url" "$rev")
@@ -267,11 +267,11 @@ jobs:
             mv data/tmp.json data/lookups.json
           done
 
-          # Resolve Custom Repository Hash
           CUSTOM_URL="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git"
           CUSTOM_BRANCH="custom"
           CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH")"
           CUSTOM_KEY="${CUSTOM_URL}@${CUSTOM_BRANCH}"
+
           jq \
             --arg key "$CUSTOM_KEY" \
             --arg sha "$CUSTOM_SHA" \
@@ -279,8 +279,8 @@ jobs:
             data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
-          # Store Daily Tag
           TAG_NAME="${{ steps.daily-tag.outputs.tag_name }}"
+
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
 
@@ -364,8 +364,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           key="${{ matrix.boards.sdk_url }}@${{ matrix.boards.sdk_revision }}"
           sha=$(jq -r --arg key "$key" '.sdk[$key]' data/lookups.json)
+
           echo "sdk_sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore West Workspace (by SDK SHA)
@@ -416,6 +418,7 @@ jobs:
         id: init-zephyr
         run: |
           echo "$HOME/.venv/bin" >> $GITHUB_PATH
+
           export PATH="$HOME/.venv/bin:$PATH"
 
           sed -i '/- name:[[:space:]]*sdk-nrf/,/import:/ { s|url:[[:space:]]*.*|url: ${{ matrix.boards.sdk_url }}|; s|revision:[[:space:]]*.*|revision: ${{ matrix.boards.sdk_revision }}|; }' zephyr-workspace/SlimeNRF-CI/west.yml
@@ -451,6 +454,7 @@ jobs:
         if: steps.restore-pip.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
+          
           ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
 
       - name: 📦 Save Zephyr Python Requirements
@@ -466,8 +470,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           key="${{ matrix.boards.repository_url }}@${{ matrix.boards.repository_revision }}"
           sha=$(jq -r --arg key "$key" '.firmware[$key]' data/lookups.json)
+
           echo "firmware_sha=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Repository
@@ -482,6 +488,7 @@ jobs:
         if: steps.restore-repository.outputs.cache-hit != 'true'
         run: |
           cd zephyr-workspace
+
           rm -rf SlimeVR-Tracker-nRF
           git clone --filter=blob:none --no-checkout "${{ matrix.boards.repository_url }}" SlimeVR-Tracker-nRF
           git -C SlimeVR-Tracker-nRF checkout ${{ steps.firmware-hash.outputs.firmware_sha }}
@@ -499,6 +506,7 @@ jobs:
         id: prepare-build
         run: |
           cd zephyr-workspace
+
           sudo rm -rf Releases-${{ matrix.boards.index }}
           mkdir Releases-${{ matrix.boards.index }}
 
@@ -568,6 +576,7 @@ jobs:
         run: |
           CUSTOM_KEY="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git@custom"
           CUSTOM_SHA=$(jq -r --arg key "$CUSTOM_KEY" '.custom[$key]' data/lookups.json)
+
           echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Custom Boards Cache
@@ -583,6 +592,7 @@ jobs:
         if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
         run: |
           cd zephyr-workspace
+
           sudo rm -rf custom
           git clone --single-branch -b custom https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git custom
 
@@ -648,7 +658,6 @@ jobs:
 
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
           UF2_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.uf2"
-
           FORMAT="${{ matrix.boards.fileformat }}"
 
           if [ "$FORMAT" = "hex" ]; then
@@ -711,9 +720,7 @@ jobs:
 
             echo "CI_COMMIT=$CI_SHA" >> $GITHUB_ENV
             echo "CI_COMMIT_SHORT=$CI_SHORT" >> $GITHUB_ENV
-
             echo "GIT_HASH=$CI_SHORT" >> $GITHUB_ENV
-
             echo "GIT_MESSAGE<<EOF" >> $GITHUB_ENV
             echo "$CI_MESSAGE" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
@@ -722,6 +729,7 @@ jobs:
           id: restore-tag
           run: |
             TAG_NAME=$(jq -r '.tag.name' data/lookups.json)
+
             echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
         - name: 📥 Download All Firmware Artifacts
@@ -734,6 +742,7 @@ jobs:
           id: merge-payload
           run: |
             mkdir -p Releases
+
             echo "Collecting firmware files..."
             find collected-firmware -type f \( -name "*.uf2" -o -name "*.hex" \) -exec cp {} Releases/ \;
             echo "Firmware files collected:"
@@ -750,6 +759,7 @@ jobs:
           if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           run: |
             FILES=$(find Releases -type f)
+
             gh release upload "latest" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
 
         - name: 📁 Upload Daily Release
@@ -758,17 +768,13 @@ jobs:
           if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
           run: |
             FILES=$(find Releases -type f)
+            
             if gh release view "${{ env.TAG_NAME }}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
               echo "Daily release ${{ env.TAG_NAME }} exists. Uploading assets..."
               gh release upload "${{ env.TAG_NAME }}" $FILES --clobber --repo "${GITHUB_REPOSITORY}"
             else
               echo "Daily release ${{ env.TAG_NAME }} does not exist. Creating new release..."
-              gh release create "${{ env.TAG_NAME }}" $FILES \
-                --repo "${GITHUB_REPOSITORY}" \
-                --title "${{ env.TAG_NAME }}" \
-                --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" \
-                --prerelease \
-                --target main
+              gh release create "${{ env.TAG_NAME }}" $FILES --repo "${GITHUB_REPOSITORY}" --title "${{ env.TAG_NAME }}" --notes "Archive of successful daily SlimeNRF Firmware build. (Automated)" --prerelease --target main
             fi
 
         # - name: 📁 Create/Update Github Latest Release
