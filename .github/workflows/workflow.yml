@@ -580,7 +580,7 @@ jobs:
           echo "sha=$CUSTOM_SHA" >> "$GITHUB_OUTPUT"
 
       - name: 📦 Restore Custom Boards Cache
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis') || (matrix.boards.boardname == 'kawazu_uf2/nrf52833'))) }}
         id: restore-custom
         uses: actions/cache/restore@v5
         with:
