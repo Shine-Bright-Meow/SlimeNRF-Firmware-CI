@@ -589,7 +589,7 @@ jobs:
 
       - name: 📥 Clone Custom Boards Repository
         id: clone-custom
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
+        if: ${{ (steps.restore-custom.outputs.cache-hit != 'true') && (steps.restore-custom.outcome == 'success') }}
         run: |
           cd zephyr-workspace
 
@@ -598,7 +598,7 @@ jobs:
 
       - name: 📦 Save Custom Boards Cache
         id: cache-custom
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) && (steps.restore-custom.outputs.cache-hit != 'true') }}
+        if: ${{ steps.clone-custom.outcome == 'success' }}
         uses: actions/cache/save@v5
         with:
           path: zephyr-workspace/custom
