@@ -636,6 +636,8 @@ jobs:
             cp -rT custom/bao SlimeVR-Tracker-nRF
           elif [[ "$boardname" == "promicro_uf2/nrf52840/chrysalis" ]]; then
             cp -rT custom/chrysalis SlimeVR-Tracker-nRF
+          elif [[ "$boardname" == "kawazu_uf2/nrf52833" ]]; then
+            cp -rT custom/kawazu SlimeVR-Tracker-nRF
           fi
           shopt -u nocasematch
 
