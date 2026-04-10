@@ -80,7 +80,7 @@ jobs:
 
             def mk_filename($v; $cfg):
               ($v.name_style // "combined") as $style
-              | ($v.source == "slimevr_tracker_nrf_tdma") as $is_tdma
+              | ($v.source | contains("tdma")) as $is_tdma
               | (["SlimeNRF", "Tracker"] + (if $is_tdma then ["TDMA"] else [] end)) as $base
               | ($v.name.bus? // null) as $bus
               | ($v.name.board) as $board
