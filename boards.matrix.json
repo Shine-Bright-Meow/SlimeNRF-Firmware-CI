@@ -672,7 +672,7 @@
         ]
       },
       "name": {
-        "board": "Mochi_TDMA"
+        "board": "Mochi"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -694,7 +694,7 @@
         ]
       },
       "name": {
-        "board": "ProMicro_TDMA"
+        "board": "ProMicro"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -719,7 +719,7 @@
         ]
       },
       "name": {
-        "board": "ProMicro_TDMA",
+        "board": "ProMicro",
         "bus": "Chrysalis"
       },
       "name_style": "combined",
@@ -751,7 +751,7 @@
         ]
       },
       "name": {
-        "board": "ProMicro_TDMA",
+        "board": "ProMicro",
         "bus": "I2C"
       },
       "name_style": "combined",
@@ -780,7 +780,7 @@
         ]
       },
       "name": {
-        "board": "ProMicro_TDMA",
+        "board": "ProMicro",
         "bus": "smSPI"
       },
       "name_style": "combined",
@@ -812,7 +812,7 @@
         ]
       },
       "name": {
-        "board": "ProMicro_TDMA",
+        "board": "ProMicro",
         "bus": "SPI"
       },
       "name_style": "combined",
@@ -835,7 +835,7 @@
         ]
       },
       "name": {
-        "board": "R3_TDMA"
+        "board": "R3"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -857,7 +857,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini_TDMA"
+        "board": "SlimevrMini"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -879,7 +879,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini2_TDMA"
+        "board": "SlimevrMini2"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -901,7 +901,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini3_R6_TDMA"
+        "board": "SlimevrMini3_R6"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -923,7 +923,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini3_R7_TDMA"
+        "board": "SlimevrMini3_R7"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -945,7 +945,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini4_TDMA"
+        "board": "SlimevrMini4"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -967,7 +967,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini4R11_TDMA"
+        "board": "SlimevrMini4R11"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -989,7 +989,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini4R9_TDMA"
+        "board": "SlimevrMini4R9"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -1020,7 +1020,7 @@
         ]
       },
       "name": {
-        "board": "XIAO_TDMA"
+        "board": "XIAO"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -1045,7 +1045,7 @@
         ]
       },
       "name": {
-        "board": "XIAO_Sense_TDMA"
+        "board": "XIAO_Sense"
       },
       "name_style": "combined",
       "fileformat": "uf2"
