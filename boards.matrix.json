@@ -29,11 +29,6 @@
       "sdk_revision": "v3.3-branch",
       "zephyr_sdk_version": "0.16.9"
     },
-    "sdk_v3_3_0_preview3_branch": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.3.0-preview3-branch",
-      "zephyr_sdk_version": "0.16.9"
-    },
     "sdk_slime_esb": {
       "sdk_url": "https://github.com/SlimeVR/sdk-nrf.git",
       "sdk_revision": "slime-esb",
@@ -52,26 +47,6 @@
     "sdk_v3_1_1": {
       "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
       "sdk_revision": "v3.1.1",
-      "zephyr_sdk_version": "0.17.4"
-    },
-    "sdk_v3_2_0": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.2.0",
-      "zephyr_sdk_version": "0.17.4"
-    },
-    "sdk_v3_2_1": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.2.1",
-      "zephyr_sdk_version": "0.17.4"
-    },
-    "sdk_v3_2_2": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.2.2",
-      "zephyr_sdk_version": "0.17.4"
-    },
-    "sdk_v3_2_3": {
-      "sdk_url": "https://github.com/nrfconnect/sdk-nrf.git",
-      "sdk_revision": "v3.2.3",
       "zephyr_sdk_version": "0.17.4"
     }
   },
@@ -1235,11 +1210,6 @@
       "repository_revision": "main",
       "profile": "sdk_v3_1_branch"
     },
-    "slimevr_tracker_nrf_receiver_main__sdk_v3_2_branch": {
-      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
-      "repository_revision": "main",
-      "profile": "sdk_v3_2_branch"
-    },
     "slimevr_tracker_nrf_receiver_tdma_slime_esb": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "tdma",
@@ -1270,20 +1240,10 @@
       "repository_revision": "main",
       "profile": "sdk_v3_3_branch"
     },
-    "slimevr_tracker_nrf_main___sdk_v3_1_1": {
-      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
-      "repository_revision": "main",
-      "profile": "sdk_v3_1_1"
-    },
     "slimevr_tracker_nrf_main___sdk_v3_1_branch": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "main",
       "profile": "sdk_v3_1_branch"
-    },
-    "slimevr_tracker_nrf_main___sdk_v3_2_branch": {
-      "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
-      "repository_revision": "main",
-      "profile": "sdk_v3_2_branch"
     },
     "stacked_smolslime_main": {
       "repository_url": "https://github.com/LyallUlric/Stacked-SmolSlime.git",
