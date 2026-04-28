@@ -241,6 +241,13 @@
       "fileformat": "uf2"
     },
     {
+      "boardname": "promicro_uf2/nrf52840/bao",
+      "source": "slimevr_tracker_nrf_dev",
+      "type": "tracker",
+      "filename": "SlimeNRF_Tracker_Bao_JitingCat",
+      "fileformat": "uf2"
+    },
+    {
       "boardname": "mochi_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
