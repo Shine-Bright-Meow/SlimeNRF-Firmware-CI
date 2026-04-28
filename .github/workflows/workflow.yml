@@ -197,7 +197,7 @@ jobs:
           resolve_sha () {
             local repo="$1"
             local ref="$2"
-            local attempts=5
+            local attempts=10
             local delay=5
             local sha=""
 
@@ -214,10 +214,11 @@ jobs:
 
               echo "Attempt $i/$attempts failed for $repo@$ref — retrying in ${delay}s..." >&2
               sleep "$delay"
+              delay=$((delay * 2))
             done
 
             echo "ERROR: Could not resolve SHA for $repo@$ref after $attempts attempts" >&2
-            echo ""
+            return 1
           }
           echo "{}" > data/lookups.json
 
@@ -283,6 +284,28 @@ jobs:
 
           jq --arg tag "$TAG_NAME" '.tag.name=$tag' data/lookups.json > data/tmp.json
           mv data/tmp.json data/lookups.json
+
+          echo "Validating lookups.json for blank SHAs..."
+          if [ -z "$(jq -r '.ci.commit' data/lookups.json)" ]; then
+            echo "ERROR: CI commit SHA is blank" >&2
+            exit 1
+          fi
+          if jq -e '.sdk | to_entries[] | select(.value == "")' data/lookups.json >/dev/null 2>&1; then
+            echo "ERROR: Blank SDK SHA(s) found:" >&2
+            jq -r '.sdk | to_entries[] | select(.value == "") | .key' data/lookups.json >&2
+            exit 1
+          fi
+          if jq -e '.firmware | to_entries[] | select(.value == "")' data/lookups.json >/dev/null 2>&1; then
+            echo "ERROR: Blank firmware SHA(s) found:" >&2
+            jq -r '.firmware | to_entries[] | select(.value == "") | .key' data/lookups.json >&2
+            exit 1
+          fi
+          if jq -e '.custom | to_entries[] | select(.value == "")' data/lookups.json >/dev/null 2>&1; then
+            echo "ERROR: Blank custom SHA(s) found:" >&2
+            jq -r '.custom | to_entries[] | select(.value == "") | .key' data/lookups.json >&2
+            exit 1
+          fi
+          echo "All SHAs resolved successfully."
 
       - name: 📦 Cache Lookups
         id: cache-lookups
