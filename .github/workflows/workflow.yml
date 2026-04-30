@@ -202,10 +202,15 @@ jobs:
             local sha=""
 
             for ((i=1;i<=attempts;i++)); do
-              sha=$(git ls-remote "$repo" \
-                "refs/heads/$ref" \
-                "refs/tags/$ref" \
-                "$ref" | head -n1 | awk '{print $1}')
+              sha=$(git ls-remote "$repo" "refs/heads/$ref" | awk '{print $1}' | head -n1)
+
+              if [[ -z "$sha" ]]; then
+                sha=$(git ls-remote "$repo" "refs/tags/$ref" | awk '{print $1}' | head -n1)
+              fi
+
+              if [[ -z "$sha" ]]; then
+                sha=$(git ls-remote "$repo" "$ref" | awk '{print $1}' | head -n1)
+              fi
 
               if [[ -n "$sha" ]]; then
                 echo "$sha"
@@ -270,7 +275,7 @@ jobs:
 
           CUSTOM_URL="https://github.com/Shine-Bright-Meow/SlimeNRF-Tracker.git"
           CUSTOM_BRANCH="custom"
-          CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH")"
+          CUSTOM_SHA="$(resolve_sha "$CUSTOM_URL" "$CUSTOM_BRANCH" | tr -d '\n')"
           CUSTOM_KEY="${CUSTOM_URL}@${CUSTOM_BRANCH}"
 
           jq \
@@ -303,6 +308,10 @@ jobs:
           if jq -e '.custom | to_entries[] | select(.value == "")' data/lookups.json >/dev/null 2>&1; then
             echo "ERROR: Blank custom SHA(s) found:" >&2
             jq -r '.custom | to_entries[] | select(.value == "") | .key' data/lookups.json >&2
+            exit 1
+          fi
+          if [[ -z "$CUSTOM_SHA" ]]; then
+            echo "ERROR: CUSTOM_SHA resolved blank"
             exit 1
           fi
           echo "All SHAs resolved successfully."
