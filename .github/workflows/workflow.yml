@@ -602,7 +602,7 @@ jobs:
           fi
 
       - name: 🔎 Retrieve Custom Boards Commit
-        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis'))) }}
+        if: ${{ (matrix.boards.type == 'tracker') && ((contains(matrix.boards.boardname, 'stacked') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/bao') || (matrix.boards.boardname == 'promicro_uf2/nrf52840/chrysalis') || (matrix.boards.boardname == 'kawazu_uf2/nrf52833'))) }}
         id: custom-hash
         shell: bash
         run: |
