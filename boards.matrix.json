@@ -1225,12 +1225,12 @@
     "slimevr_tracker_nrf_receiver_tdma": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "tdma",
-      "profile": "sdk_slime_v3_2_branch"
+      "profile": "sdk_slime_esb"
     },
     "slimevr_tracker_nrf_receiver_tdma_rebase": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "tdma-rebase",
-      "profile": "sdk_slime_v3_2_branch"
+      "profile": "sdk_slime_esb"
     },
     "slimevr_tracker_nrf_receiver_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
@@ -1270,12 +1270,12 @@
     "slimevr_tracker_nrf_tdma": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "tdma",
-      "profile": "sdk_slime_v3_2_branch"
+      "profile": "sdk_slime_esb"
     },
     "slimevr_tracker_nrf_tdma_rebase": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "tdma-rebase",
-      "profile": "sdk_slime_v3_2_branch"
+      "profile": "sdk_slime_esb"
     },
     "slimevr_tracker_nrf_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
