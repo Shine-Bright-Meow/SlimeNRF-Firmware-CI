@@ -1043,8 +1043,8 @@
       "fileformat": "uf2"
     },
     {
-      "boardname": "promicro_uf2/nrf52840/i2c",
-      "source": "stacked_smolslime_main",
+      "boardname": "promicro_uf2/nrf52840/stackedi2c",
+      "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
       "defaults": {
         "extraaction": "enabled",
@@ -1072,8 +1072,8 @@
       "fileformat": "uf2"
     },
     {
-      "boardname": "promicro_uf2/nrf52840/spi",
-      "source": "stacked_smolslime_main",
+      "boardname": "promicro_uf2/nrf52840/stackedspi",
+      "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
       "defaults": {
         "extraaction": "enabled",
@@ -1250,7 +1250,7 @@
     "slimevr_tracker_nrf_main": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
       "repository_revision": "main",
-      "profile": "sdk_v3_3_branch"
+      "profile": "sdk_v3_1_branch"
     },
     "slimevr_tracker_nrf_main___sdk_v3_1_branch": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF.git",
