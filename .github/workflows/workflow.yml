@@ -667,8 +667,6 @@ jobs:
             cp -rT custom/stacked SlimeVR-Tracker-nRF
           elif [[ "$boardname" == "promicro_uf2/nrf52840/bao" ]]; then
             cp -rT custom/bao SlimeVR-Tracker-nRF
-          elif [[ "$boardname" == "promicro_uf2/nrf52840/chrysalis" ]]; then
-            cp -rT custom/chrysalis SlimeVR-Tracker-nRF
           elif [[ "$boardname" == *promicro* && "$boardname" != *stacked* && "$type" == "tracker" ]]; then
             sed -i '/^[[:space:]]*nrf_gpio_cfg(NRF_GPIO_PIN_MAP(0, 13)/ s/NRF_GPIO_PIN_PULLDOWN/NRF_GPIO_PIN_PULLUP/' SlimeVR-Tracker-nRF/boards/nordic/promicro_uf2/board.c
           elif [[ "$boardname" == "kawazu_uf2/nrf52833" ]]; then

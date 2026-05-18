@@ -623,7 +623,7 @@
     },
     {
       "boardname": "promicro_uf2/nrf52840/chrysalis",
-      "source": "slimevr_tracker_nrf_master",
+      "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
       "defaults": {
         "clk": "enabled",
