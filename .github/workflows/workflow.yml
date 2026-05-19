@@ -725,7 +725,6 @@ jobs:
   collector:
     needs: [generate_matrix, build]
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
     if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
     continue-on-error: true
@@ -787,9 +786,9 @@ jobs:
 
         - name: 🔑 Authenticate GitHub CLI
           id: gh-auth
-          if: ${{ env.GITHUB_TOKEN != null }}
+          if: ${{ github.secret_source == 'Actions' }}
           run: |
-            gh auth login --with-token <<< "${{ github.token }}"
+            gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
         - name: 📁 Upload Latest Release
           id: upload-latest
@@ -816,11 +815,11 @@ jobs:
             fi
 
         # - name: 📁 Create/Update Github Latest Release
-        #   if: ${{ env.GITHUB_TOKEN != null }}
+        #   if: ${{ github.secret_source == 'Actions' }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
-        #     token: ${{ github.token }}
+        #     token: ${{ secrets.gh_token }}
         #     tag: "latest"
         #     prerelease: false
         #     name: "Latest Firmware"
@@ -832,11 +831,11 @@ jobs:
         #     clear_attachments: false
 
         # - name: 📁 Create/Update Github Daily Release
-        #   if: ${{ env.GITHUB_TOKEN != null }}
+        #   if: ${{ github.secret_source == 'Actions' }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
-        #     token: ${{ github.token }}
+        #     token: ${{ secrets.gh_token }}
         #     tag: "${{ env.TAG_NAME }}"
         #     prerelease: true
         #     name: "${{ env.TAG_NAME }}"
