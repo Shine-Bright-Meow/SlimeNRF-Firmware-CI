@@ -723,14 +723,14 @@ jobs:
             zephyr-workspace/Releases-${{ matrix.boards.index }}/*.hex
 
   collector:
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
-      if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
-      needs: [generate_matrix, build]
-      continue-on-error: true
-      runs-on: ubuntu-latest
-      steps:
+    needs: [generate_matrix, build]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
+    if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
 
         - name: 💻 Checkout Repository
           uses: actions/checkout@v6
