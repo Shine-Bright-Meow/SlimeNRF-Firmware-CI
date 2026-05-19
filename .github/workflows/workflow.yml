@@ -723,11 +723,12 @@ jobs:
             zephyr-workspace/Releases-${{ matrix.boards.index }}/*.hex
 
   collector:
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
       if: ${{ (github.event_name == 'schedule' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) }}
       needs: [generate_matrix, build]
       continue-on-error: true
-      env:
-        MATRIX_COUNT: ${{ needs.generate_matrix.outputs.count }}
       runs-on: ubuntu-latest
       steps:
 
@@ -786,9 +787,9 @@ jobs:
 
         - name: 🔑 Authenticate GitHub CLI
           id: gh-auth
-          if: ${{ secrets.gh_token != '' }}
+          if: ${{ env.GITHUB_TOKEN != null }}
           run: |
-            gh auth login --with-token <<< "${{ secrets.gh_token }}"
+            gh auth login --with-token <<< "${{ github.token }}"
 
         - name: 📁 Upload Latest Release
           id: upload-latest
@@ -815,11 +816,11 @@ jobs:
             fi
 
         # - name: 📁 Create/Update Github Latest Release
-        #   if: ${{ steps.gh-auth.outcome == 'success' }}
+        #   if: ${{ env.GITHUB_TOKEN != null }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
-        #     token: ${{ secrets.gh_token }}
+        #     token: ${{ github.token }}
         #     tag: "latest"
         #     prerelease: false
         #     name: "Latest Firmware"
@@ -831,11 +832,11 @@ jobs:
         #     clear_attachments: false
 
         # - name: 📁 Create/Update Github Daily Release
-        #   if: ${{ steps.gh-auth.outcome == 'success' }}
+        #   if: ${{ env.GITHUB_TOKEN != null }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
-        #     token: ${{ secrets.gh_token }}
+        #     token: ${{ github.token }}
         #     tag: "${{ env.TAG_NAME }}"
         #     prerelease: true
         #     name: "${{ env.TAG_NAME }}"
