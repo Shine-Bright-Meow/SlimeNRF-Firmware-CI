@@ -786,11 +786,13 @@ jobs:
 
         - name: 🔑 Authenticate GitHub CLI
           id: gh-auth
+          if: ${{ secrets.gh_token != '' }}
           run: |
             gh auth login --with-token <<< "${{ secrets.gh_token }}"
 
         - name: 📁 Upload Latest Release
           id: upload-latest
+          if: ${{ steps.gh-auth.outcome == 'success' }}
           continue-on-error: true
           run: |
             FILES=$(find Releases -type f)
@@ -799,6 +801,7 @@ jobs:
 
         - name: 📁 Upload Daily Release
           id: upload-daily
+          if: ${{ steps.gh-auth.outcome == 'success' }}
           continue-on-error: true
           run: |
             FILES=$(find Releases -type f)
@@ -812,6 +815,7 @@ jobs:
             fi
 
         # - name: 📁 Create/Update Github Latest Release
+        #   if: ${{ steps.gh-auth.outcome == 'success' }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
@@ -827,6 +831,7 @@ jobs:
         #     clear_attachments: false
 
         # - name: 📁 Create/Update Github Daily Release
+        #   if: ${{ steps.gh-auth.outcome == 'success' }}
         #   continue-on-error: true
         #   uses: mini-bomba/create-github-release@v1.2.0
         #   with:
