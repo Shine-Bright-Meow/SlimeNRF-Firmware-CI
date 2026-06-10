@@ -46,7 +46,7 @@
     },
     "sdk_jiting_esb": {
       "sdk_url": "https://github.com/jitingcn/sdk-nrf.git",
-      "sdk_revision": "v3.1-branch",
+      "sdk_revision": "v3.2-branch",
       "zephyr_sdk_version": "0.17.4"
     },
     "sdk_v3_1_1": {
