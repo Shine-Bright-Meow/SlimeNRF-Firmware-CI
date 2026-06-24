@@ -46,6 +46,11 @@
     },
     "sdk_jiting_esb": {
       "sdk_url": "https://github.com/jitingcn/sdk-nrf.git",
+      "sdk_revision": "v3.1-branch",
+      "zephyr_sdk_version": "0.17.4"
+    },
+    "sdk_jiting_v3_2_esb": {
+      "sdk_url": "https://github.com/jitingcn/sdk-nrf.git",
       "sdk_revision": "v3.2-branch",
       "zephyr_sdk_version": "0.17.4"
     },
@@ -1194,7 +1199,7 @@
     "slimevr_tracker_nrf_receiver_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF-Receiver.git",
       "repository_revision": "dev",
-      "profile": "sdk_jiting_esb"
+      "profile": "sdk_jiting_v3_2_esb"
     },
     "slimevr_tracker_nrf_receiver_main": {
       "repository_url": "https://github.com/SlimeVR/SlimeVR-Tracker-nRF-Receiver.git",
@@ -1238,7 +1243,7 @@
     },
     "slimevr_tracker_nrf_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
-      "repository_revision": "dev",
+      "repository_revision": "dec731e1a061cf75ecc30c3d516ad41362a6b28d",
       "profile": "sdk_jiting_esb"
     }
   }
