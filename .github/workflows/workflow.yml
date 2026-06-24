@@ -197,6 +197,29 @@ jobs:
           resolve_sha () {
             local repo="$1"
             local ref="$2"
+
+            if [[ "$ref" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+              local full_repo owner name
+              full_repo="$repo"
+              owner=$(echo "$full_repo" | sed -E 's#^https://github.com/##; s#\.git$##' | cut -d/ -f1)
+              name=$(echo "$full_repo" | sed -E 's#^https://github.com/##; s#\.git$##' | cut -d/ -f2)
+              if [ -z "$owner" ] || [ -z "$name" ]; then
+                echo "ERROR: Could not parse GitHub repo owner/name from: $repo" >&2
+                return 1
+              fi
+
+              local api_url="https://api.github.com/repos/${owner}/${name}/commits/${ref}"
+              local sha
+              sha=$(curl -fsSL "$api_url" | jq -r '.sha')
+              if [ -n "$sha" ] && [ "$sha" != "null" ]; then
+                echo "$sha"
+                return 0
+              fi
+
+              echo "ERROR: Could not resolve commit SHA for ${repo}@${ref} via GitHub API" >&2
+              return 1
+            fi
+
             local attempts=10
             local delay=5
             local sha=""
@@ -209,6 +232,7 @@ jobs:
               fi
 
               if [[ -z "$sha" ]]; then
+                # Fallback: allow direct refspecs (rare) like ^{} usage not supported here.
                 sha=$(git ls-remote "$repo" "$ref" | awk '{print $1}' | head -n1)
               fi
 
@@ -229,7 +253,13 @@ jobs:
 
           CI_URL="https://github.com/${GITHUB_REPOSITORY}"
           CI_BRANCH="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
-          CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
+
+          # If the workflow was triggered by a commit SHA, avoid re-resolving via git/refs.
+          if [[ "$CI_BRANCH" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+            CI_SHA="$CI_BRANCH"
+          else
+            CI_SHA="$(resolve_sha "$CI_URL" "$CI_BRANCH")"
+          fi
           CI_SHORT="$(echo "$CI_SHA" | cut -c1-7)"
           CI_MESSAGE=$(git log -1 --pretty=%B)
 
