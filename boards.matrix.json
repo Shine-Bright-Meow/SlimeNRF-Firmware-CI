@@ -1243,8 +1243,8 @@
     },
     "slimevr_tracker_nrf_dev": {
       "repository_url": "https://github.com/jitingcn/SlimeVR-Tracker-nRF.git",
-      "repository_revision": "dec731e1a061cf75ecc30c3d516ad41362a6b28d",
-      "profile": "sdk_jiting_esb"
+      "repository_revision": "d14c7a2007526782d8c3f69f603707ebcd85aee3",
+      "profile": "sdk_slime_v3_2_branch"
     }
   }
 }
