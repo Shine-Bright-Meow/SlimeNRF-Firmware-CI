@@ -1130,7 +1130,7 @@
     },
     {
       "boardname": "promicro_uf2/nrf52840/stackedi2c",
-      "source": "slimevr_tracker_nrf_tdma_rebase",
+      "source": "slimevr_tracker_nrf_tdma",
       "type": "tracker",
       "defaults": {
         "clk": "enabled",
@@ -1153,7 +1153,7 @@
     },
     {
       "boardname": "promicro_uf2/nrf52840/stackedspi",
-      "source": "slimevr_tracker_nrf_tdma_rebase",
+      "source": "slimevr_tracker_nrf_tdma",
       "type": "tracker",
       "defaults": {
         "clk": "enabled",
