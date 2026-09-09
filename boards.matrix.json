@@ -165,6 +165,20 @@
       "fileformat": "uf2"
     },
     {
+      "boardname": "butterfly_p3/nrf52820",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P3_TDMA_Receiver",
+      "fileformat": "hex"
+    },
+    {
+      "boardname": "butterfly_p5_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P5_TDMA_Receiver",
+      "fileformat": "uf2"
+    },
+    {
       "boardname": "etee_dongle_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
