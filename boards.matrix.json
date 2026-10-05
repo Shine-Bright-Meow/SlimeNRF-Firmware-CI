@@ -179,6 +179,13 @@
       "fileformat": "uf2"
     },
     {
+      "boardname": "butterfly_dg1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_tdma",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_DG1_TDMA_Receiver",
+      "fileformat": "uf2"
+    },
+    {
       "boardname": "etee_dongle_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_tdma",
       "type": "receiver",
@@ -546,28 +553,6 @@
       "fileformat": "uf2"
     },
     {
-      "boardname": "slimevrmini_p4r11_uf2/nrf52833",
-      "source": "slimevr_tracker_nrf_main",
-      "type": "tracker",
-      "defaults": {
-        "clk": "enabled",
-        "extraaction": "disabled",
-        "magnetometer": "disabled",
-        "sw0": "enabled"
-      },
-      "matrix": {
-        "sleep": [
-          "disabled",
-          "enabled"
-        ]
-      },
-      "name": {
-        "board": "SlimevrMini4R11"
-      },
-      "name_style": "combined",
-      "fileformat": "uf2"
-    },
-    {
       "boardname": "slimevrmini_p4r9_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_main",
       "type": "tracker",
@@ -585,6 +570,28 @@
       },
       "name": {
         "board": "SlimevrMini4R9"
+      },
+      "name_style": "combined",
+      "fileformat": "uf2"
+    },
+    {
+      "boardname": "slimevrmini_p4r11_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R11"
       },
       "name_style": "combined",
       "fileformat": "uf2"
@@ -967,6 +974,28 @@
       "fileformat": "uf2"
     },
     {
+      "boardname": "slimevrmini_p4r9_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_tdma",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "SlimevrMini4R9"
+      },
+      "name_style": "combined",
+      "fileformat": "uf2"
+    },
+    {
       "boardname": "slimevrmini_p4r11_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_tdma",
       "type": "tracker",
@@ -989,7 +1018,7 @@
       "fileformat": "uf2"
     },
     {
-      "boardname": "slimevrmini_p4r9_uf2/nrf52833",
+      "boardname": "butterfly_r15_uf2/nrf52833",
       "source": "slimevr_tracker_nrf_tdma",
       "type": "tracker",
       "defaults": {
@@ -1005,7 +1034,7 @@
         ]
       },
       "name": {
-        "board": "SlimevrMini4R9"
+        "board": "ButterflyR15"
       },
       "name_style": "combined",
       "fileformat": "uf2"
