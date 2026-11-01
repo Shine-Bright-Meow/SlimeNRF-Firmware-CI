@@ -703,6 +703,16 @@ jobs:
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         id: build-firmware
         run: |
+          echo "===== Build Environment ====="
+          cmake --version
+          python3 --version
+          west --version
+
+          echo "===== Zephyr Toolchain ====="
+          echo "ZEPHYR_TOOLCHAIN_VARIANT=${ZEPHYR_TOOLCHAIN_VARIANT:-UNDEFINED}"
+          echo "ZEPHYR_SDK_INSTALL_DIR=${ZEPHYR_SDK_INSTALL_DIR:-UNDEFINED}"
+          echo "NCS_TOOLCHAIN_VERSION=${NCS_TOOLCHAIN_VERSION:-UNDEFINED}"
+          echo "============================="
           cd zephyr-workspace
 
           sed -i "/printk(FW_STRING);/a printk(\"Repo: $(echo '${{ matrix.boards.repository_url }}' | sed -E 's#https://github.com/##;s#\.git$##')@${{ matrix.boards.repository_revision }} | SDK: ${{ matrix.boards.sdk_revision }}\\\\n\"); printk(\"Build from ${{ github.repository }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
