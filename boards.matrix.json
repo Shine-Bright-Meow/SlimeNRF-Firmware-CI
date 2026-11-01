@@ -74,6 +74,20 @@
       "fileformat": "hex"
     },
     {
+      "boardname": "butterfly_p5_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_main",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_P5_Receiver",
+      "fileformat": "uf2"
+    },
+    {
+      "boardname": "butterfly_dg1_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_receiver_main",
+      "type": "receiver",
+      "filename": "SlimeNRF_Butterfly_DG1_Receiver",
+      "fileformat": "uf2"
+    },
+    {
       "boardname": "etee_dongle_uf2/nrf52840",
       "source": "slimevr_tracker_nrf_receiver_main",
       "type": "receiver",
@@ -557,6 +571,28 @@
       },
       "name": {
         "board": "SlimevrMini4R11"
+      },
+      "name_style": "combined",
+      "fileformat": "uf2"
+    },
+    {
+      "boardname": "butterfly_r15_uf2/nrf52833",
+      "source": "slimevr_tracker_nrf_main",
+      "type": "tracker",
+      "defaults": {
+        "clk": "enabled",
+        "extraaction": "disabled",
+        "magnetometer": "disabled",
+        "sw0": "enabled"
+      },
+      "matrix": {
+        "sleep": [
+          "disabled",
+          "enabled"
+        ]
+      },
+      "name": {
+        "board": "ButterflyR15"
       },
       "name_style": "combined",
       "fileformat": "uf2"
