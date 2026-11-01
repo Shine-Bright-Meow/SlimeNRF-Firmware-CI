@@ -465,7 +465,7 @@ jobs:
         if: ${{ steps.restore-pip.outputs.cache-hit != 'true' && steps.restore-venv.outputs.cache-hit != 'true' }}
         id: setup-venv
         run: |
-          python3.12 -m venv ~/.venv
+          python3 -m venv ~/.venv
           ~/.venv/bin/pip install west ninja
 
       - name: 📦 Save Python Venv
