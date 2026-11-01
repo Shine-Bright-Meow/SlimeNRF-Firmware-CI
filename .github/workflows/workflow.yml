@@ -703,17 +703,20 @@ jobs:
       - name: 🔨 Build SlimeVR-Tracker-nRF - ${{ matrix.boards.boardname }}
         id: build-firmware
         run: |
+          cd zephyr-workspace
+
+          export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+          export ZEPHYR_SDK_INSTALL_DIR="$HOME/zephyr-sdk"
+
           echo "===== Build Environment ====="
           cmake --version
           python3 --version
           west --version
 
           echo "===== Zephyr Toolchain ====="
-          echo "ZEPHYR_TOOLCHAIN_VARIANT=${ZEPHYR_TOOLCHAIN_VARIANT:-UNDEFINED}"
-          echo "ZEPHYR_SDK_INSTALL_DIR=${ZEPHYR_SDK_INSTALL_DIR:-UNDEFINED}"
-          echo "NCS_TOOLCHAIN_VERSION=${NCS_TOOLCHAIN_VERSION:-UNDEFINED}"
+          echo "ZEPHYR_TOOLCHAIN_VARIANT=$ZEPHYR_TOOLCHAIN_VARIANT"
+          echo "ZEPHYR_SDK_INSTALL_DIR=$ZEPHYR_SDK_INSTALL_DIR"
           echo "============================="
-          cd zephyr-workspace
 
           sed -i "/printk(FW_STRING);/a printk(\"Repo: $(echo '${{ matrix.boards.repository_url }}' | sed -E 's#https://github.com/##;s#\.git$##')@${{ matrix.boards.repository_revision }} | SDK: ${{ matrix.boards.sdk_revision }}\\\\n\"); printk(\"Build from ${{ github.repository }}\\\\n\");" SlimeVR-Tracker-nRF/src/console.c
           sudo rm -rf SlimeVR-Tracker-nRF/build
@@ -724,7 +727,6 @@ jobs:
               --pristine=always SlimeVR-Tracker-nRF \
               --build-dir SlimeVR-Tracker-nRF/build \
               -- \
-              -DNCS_TOOLCHAIN_VERSION=NONE \
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF
 
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
