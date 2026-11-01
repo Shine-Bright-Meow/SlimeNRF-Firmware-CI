@@ -715,8 +715,6 @@ jobs:
               --build-dir SlimeVR-Tracker-nRF/build \
               -- \
               -DNCS_TOOLCHAIN_VERSION=NONE \
-              -DZEPHYR_TOOLCHAIN_VARIANT=zephyr
-              -DZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF
 
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
