@@ -24,7 +24,7 @@ env:
 jobs:
 
   setup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: 🧰 Cache + Install Apt Dependencies
         id: cache-packages
@@ -465,7 +465,7 @@ jobs:
         if: ${{ steps.restore-pip.outputs.cache-hit != 'true' && steps.restore-venv.outputs.cache-hit != 'true' }}
         id: setup-venv
         run: |
-          python3 -m venv ~/.venv
+          python3.12 -m venv ~/.venv
           ~/.venv/bin/pip install west ninja
 
       - name: 📦 Save Python Venv
@@ -517,7 +517,7 @@ jobs:
         run: |
           cd zephyr-workspace
           
-          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt
+          ~/.venv/bin/pip install -r zephyr/scripts/requirements.txt -r nrf/scripts/requirements-build.txt
 
       - name: 📦 Save Zephyr Python Requirements
         id: cache-pip
@@ -715,6 +715,8 @@ jobs:
               --build-dir SlimeVR-Tracker-nRF/build \
               -- \
               -DNCS_TOOLCHAIN_VERSION=NONE \
+              -DZEPHYR_TOOLCHAIN_VARIANT=zephyr
+              -DZEPHYR_SDK_INSTALL_DIR=$HOME/zephyr-sdk
               -DBOARD_ROOT=../SlimeVR-Tracker-nRF
 
           HEX_SRC="SlimeVR-Tracker-nRF/build/SlimeVR-Tracker-nRF/zephyr/zephyr.hex"
